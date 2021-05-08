@@ -118,21 +118,6 @@ glm::vec3 Util::NormalFromTriangle(glm::vec3 pos0, glm::vec3 pos1, glm::vec3 pos
 	return glm::normalize(glm::cross(pos1 - pos0, pos2 - pos0));
 }
 
-btVector3 Util::glmVec3_to_btVec3(glm::vec3 vector)
-{
-	return btVector3(vector.x, vector.y, vector.z);
-}
-
-btQuaternion Util::glmVec3_to_btQuat(glm::vec3 vector)
-{
-	glm::quat r = glm::quat(vector);
-	return btQuaternion(r.x, r.y, r.z, r.w);
-}
-
-glm::vec3 Util::btVec3_to_glmVec3(btVector3 vector)
-{
-	return glm::vec3(vector.x(), vector.y(), vector.z());
-}
 
 std::string Util::BoolToString(bool boolean)
 {
@@ -171,59 +156,11 @@ glm::vec3 Util::Vec3FromJSONArray(rapidjson::GenericArray<false, rapidjson::Valu
 	return glm::vec3(arr[0].GetFloat(), arr[1].GetFloat(), arr[2].GetFloat());
 }
 
-std::string Util::PhysicsObjectEnumToString(PhysicsObjectType objectType)
-{
-	if (objectType == PhysicsObjectType::UNDEFINED)
-		return "UNDEFINED";
-	if (objectType == PhysicsObjectType::WALL)
-		return "WALL";
-	if (objectType == PhysicsObjectType::FLOOR)
-		return "FLOOR";
-	if (objectType == PhysicsObjectType::DOOR)
-		return "DOOR";
-	if (objectType == PhysicsObjectType::STAIRS)
-		return "STAIRS";
-	if (objectType == PhysicsObjectType::PLAYER)
-		return "PLAYER";
-	if (objectType == PhysicsObjectType::RAGDOLL)
-		return "RAGDOLL";
-	if (objectType == PhysicsObjectType::CEILING)
-		return "CEILING";
-	if (objectType == PhysicsObjectType::SHELL_PROJECTILE)
-		return "SHELL_PROJECTILE";
-	if (objectType == PhysicsObjectType::MISC_MESH)
-		return "MISC_MESH";
-	if (objectType == PhysicsObjectType::EDITOR_WINDOW)
-		return "WINDOW";
-	if (objectType == PhysicsObjectType::GLASS)
-		return "GLASS";
-}
-
 glm::vec3 Util::GetTranslationFromMatrix(glm::mat4 matrix)
 {
 	return glm::vec3(matrix[3][0], matrix[3][1], matrix[3][2]);
 }
 
-btQuaternion Util::BtQuatFromJSONArray(rapidjson::GenericArray<false, rapidjson::Value> const arr)
-{
-	return btQuaternion(arr[0].GetFloat(), arr[1].GetFloat(), arr[2].GetFloat(), arr[3].GetFloat());
-}
-
-btMatrix3x3 Util::BtMat3FromGlmMatrix(glm::mat4 matrix)
-{
-	btMatrix3x3 m;
-	matrix = glm::transpose(matrix);
-	m[0][0] = matrix[0][0];
-	m[0][1] = matrix[0][1];
-	m[0][2] = matrix[0][2];
-	m[1][0] = matrix[1][0];
-	m[1][1] = matrix[1][1];
-	m[1][2] = matrix[1][2];
-	m[2][0] = matrix[2][0];
-	m[2][1] = matrix[2][1];
-	m[2][2] = matrix[2][2];
-	return m;
-}
 
 void Util::InterpolateQuaternion(glm::quat& Out, const glm::quat& Start, const glm::quat& End, float pFactor)
 {
@@ -310,26 +247,7 @@ glm::mat4 Util::Mat4InitTranslationTransform(float x, float y, float z)
 	return  glm::translate(glm::mat4(1.0f), glm::vec3(x, y, z));
 }
 
-glm::mat4 Util::aiMatrix4x4ToGlm(const aiMatrix4x4& from)
-{
-	glm::mat4 to;
-	//the a,b,c,d in assimp is the row ; the 1,2,3,4 is the column
-	to[0][0] = from.a1; to[1][0] = from.a2; to[2][0] = from.a3; to[3][0] = from.a4;
-	to[0][1] = from.b1; to[1][1] = from.b2; to[2][1] = from.b3; to[3][1] = from.b4;
-	to[0][2] = from.c1; to[1][2] = from.c2; to[2][2] = from.c3; to[3][2] = from.c4;
-	to[0][3] = from.d1; to[1][3] = from.d2; to[2][3] = from.d3; to[3][3] = from.d4;
-	return to;
-}
 
-glm::mat4 Util::aiMatrix3x3ToGlm(const aiMatrix3x3& from)
-{
-	glm::mat4 to;
-	to[0][0] = from.a1; to[1][0] = from.a2; to[2][0] = from.a3; to[3][0] = 0.0;
-	to[0][1] = from.b1; to[1][1] = from.b2; to[2][1] = from.b3; to[3][1] = 0.0;
-	to[0][2] = from.c1; to[1][2] = from.c2; to[2][2] = from.c3; to[3][2] = 0.0;
-	to[0][3] = 0.0; to[1][3] = 0.0; to[2][3] = 0.0; to[3][3] = 1.0;
-	return to;
-}
 
 bool Util::StrCmp(const char* queryA, const char* queryB)
 {
@@ -346,42 +264,3 @@ const char* Util::CopyConstChar(const char* text)
 	return b;
 }
 
-btQuaternion Util::GetRotationFromBoneMatrix(glm::mat4 matrix)
-{
-	glm::quat q = glm::quat_cast(matrix);
-	return btQuaternion(q.x, q.y, q.z, q.w);
-}
-
-/*
-btQuaternion Util::GetRotationFromBoneMatrix(glm::mat4 matrix)
-{
-	glm::quat q = glm::quat_cast(matrix);
-	return btQuaternion(q.x, q.y, q.z, q.w) * btQuaternion(0.70710678118, -0.70710678118, 0, 0);
-}*/
-
-
-/*
-btQuaternion euler_to_quaternion(glm::vec3 euler)
-{
-	float yaw = euler.x;
-	float pitch = euler.y;
-	float roll = euler.z;
-
-	float qx = sin(roll / 2) * cos(pitch / 2) * cos(yaw / 2) - cos(roll / 2) * sin(pitch / 2) * sin(yaw / 2);
-	float qy = cos(roll / 2) * sin(pitch / 2) * cos(yaw / 2) + sin(roll / 2) * cos(pitch / 2) * sin(yaw / 2);
-	float qz = cos(roll / 2) * cos(pitch / 2) * sin(yaw / 2) - sin(roll / 2) * sin(pitch / 2) * cos(yaw / 2);
-	float qw = cos(roll / 2) * cos(pitch / 2) * cos(yaw / 2) + sin(roll / 2) * sin(pitch / 2) * sin(yaw / 2);
-
-	return btQuaternion(qx, qy, qz, qw);
-}*/
-
-glm::mat4 Util::btTransformToMat4(btTransform& trans) // Ignores scale.
-{
-	btVector3 pos = trans.getOrigin();
-	btQuaternion rot = trans.getRotation();
-	glm::vec3 posGL = glm::vec3(pos.x(), pos.y(), pos.z());
-	glm::quat rotQL = glm::quat(rot.w(), rot.x(), rot.y(), rot.z());
-	glm::mat4 m = glm::translate(glm::mat4(1), posGL);
-	m *= glm::mat4_cast(rotQL);
-	return  m;
-}

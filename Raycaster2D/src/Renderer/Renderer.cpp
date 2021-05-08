@@ -1,7 +1,6 @@
 #include "Renderer.h"
 #include "Renderer/TextBlitter.h"
 #include <random>
-#include "Helpers/FileImporter.h"
 
 Shader Renderer::s_test_shader;
 Shader Renderer::s_solid_color_shader;
@@ -26,7 +25,7 @@ void Renderer::Init()
 }
 
 
-void Renderer::RenderFrame(std::vector<GameCharacter>& gameCharacters, Entity& couch, Camera* camera)
+void Renderer::RenderFrame(Camera* camera)
 {
     camera->CalculateProjectionMatrix(SCR_WIDTH, SCR_HEIGHT);
     camera->CalculateMatrices();
@@ -65,30 +64,13 @@ void Renderer::RenderFrame(std::vector<GameCharacter>& gameCharacters, Entity& c
     s_test_shader.use();
     s_test_shader.setMat4("projection", camera->m_projectionMatrix);
     s_test_shader.setMat4("view", camera->m_viewMatrix);
-    couch.DrawEntity(&s_test_shader);
+   // couch.DrawEntity(&s_test_shader);
 
-   // sphere.DrawEntity(&s_test_shader);
-
-    // Draw ragdolls
-    s_skinned_model_shader.use();
-    s_skinned_model_shader.setMat4("projection", camera->m_projectionMatrix);
-    s_skinned_model_shader.setMat4("view", camera->m_viewMatrix);
-    s_skinned_model_shader.setBool("hasAnimation", true);
-    s_skinned_model_shader.setMat4("model", glm::mat4(1));    
-    for (GameCharacter& gameCharacter : gameCharacters)    
-        gameCharacter.RenderSkinnedModel(&s_skinned_model_shader);
 
     TextBlitterPass(&s_textued_2D_quad_shader);
 
     RenderFinalImage();
 
-    // Bullet Debug
-    if (Input::s_showBulletDebug) {
-        s_solid_color_shader.use();
-        glDisable(GL_DEPTH_TEST);
-        glViewport(0, 0, CoreGL::s_windowWidth, CoreGL::s_windowHeight);
-        Physics::DebugDraw(&s_solid_color_shader);
-    }
 }
 
 void Renderer::TextBlitterPass(Shader* shader)
@@ -172,86 +154,3 @@ void Renderer::RenderFinalImage()
     glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
     glBindVertexArray(0);
 }
-
-/*
-void Renderer::RenderJointAxis(Shader* shader, GameCharacter* gameCharacter)
-{
-    for (int i = 0; i < gameCharacter->m_animatedDebugTransforms_Animated.size(); i++)
-    {
-        glm::mat4 boneMatrix = gameCharacter->m_animatedDebugTransforms_Animated[i];
-        DrawTangentDebugAxis(shader, gameCharacter->m_transform.to_mat4() * boneMatrix, 0.05f);
-    }
-}*/
-
-/*
-void Renderer::DrawTangentDebugAxis(Shader* shader, glm::mat4 modelMatrix, float lineLength)
-{
-    static unsigned int VAO = 0;
-
-    if (VAO == 0)
-    {
-        unsigned int VBO;
-        glGenVertexArrays(1, &VAO);
-        glGenBuffers(1, &VBO);
-
-        glm::vec3 vertices[12];
-
-        vertices[0] = (glm::vec3(0, 0, 0)); // origin
-        vertices[1] = (glm::vec3(1, 0, 0)); // red
-        vertices[2] = (glm::vec3(lineLength, 0, 0)); // X Axis
-        vertices[3] = (glm::vec3(1, 0, 0)); // red
-
-        vertices[4] = (glm::vec3(0, 0, 0)); // origin
-        vertices[5] = (glm::vec3(0, 1, 0)); // green
-        vertices[6] = (glm::vec3(0, lineLength, 0)); // Y Axis
-        vertices[7] = (glm::vec3(0, 1, 0)); // green
-
-        vertices[8] = (glm::vec3(0, 0, 0)); // origin
-        vertices[9] = (glm::vec3(0, 0, 1)); // green
-        vertices[10] = (glm::vec3(0, 0, lineLength)); // Z Axis
-        vertices[11] = (glm::vec3(0, 0, 1)); // green
-
-        glBindBuffer(GL_ARRAY_BUFFER, VBO);
-        glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-        glBindVertexArray(VAO);
-        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
-        glEnableVertexAttribArray(0);
-        glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3 * sizeof(float)));
-        glEnableVertexAttribArray(1);
-    }
-
-    shader->setMat4("model", modelMatrix);
-    glBindVertexArray(VAO);
-    glDrawArrays(GL_LINES, 0, 6);
-}
-*/
-/*
-void Renderer::DrawPoint(Shader* shader, glm::vec3 position, glm::vec3 color)
-{
-    static unsigned int VAO = 0;
-    static unsigned int VBO;
-
-    if (VAO == 0)
-    {
-        glGenVertexArrays(1, &VAO);
-        glGenBuffers(1, &VBO);
-    }
-
-    float vertices[] = {
-            0,0,0, color.r, color.g, color.b
-
-    };
-    glPointSize(4);
-    glBindBuffer(GL_ARRAY_BUFFER, VBO);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-    glBindVertexArray(VAO);
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
-    glEnableVertexAttribArray(0);
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3 * sizeof(float)));
-    glEnableVertexAttribArray(1);
-
-    shader->setVec3("color", glm::vec3(1, 0, 0));
-    shader->setMat4("model", Transform(position).to_mat4());
-    glBindVertexArray(VAO);
-    glDrawArrays(GL_POINTS, 0, 1);
-}*/

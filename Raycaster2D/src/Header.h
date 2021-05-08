@@ -65,24 +65,6 @@ struct Line {
 	glm::vec3 end_color;
 };
 
-enum class PhysicsObjectType { UNDEFINED, WALL, EDITOR_WINDOW, DOOR, FLOOR, STAIRS, PLAYER, RAGDOLL, CEILING, SHELL_PROJECTILE, MISC_MESH, GLASS };
-
-struct EntityData {
-	unsigned int enumValue = 0;
-	PhysicsObjectType type;
-	void* ptr;
-};
-
-enum CollisionGroups {
-	NONE = 0,
-	HOUSE = 1 << 0,
-	PLAYER = 1 << 1,
-	PROJECTILES = 1 << 2,
-	ENTITY = 2 << 3,
-	ENEMY = 3 << 4,
-	EDITOR_ONLY = 4 << 5,
-	TERRAIN = 5 << 6
-};
 
 #define WORLD_GROUND_SIZE	150.0f
 #define WORLD_GROUND_HEIGHT	1.0f
