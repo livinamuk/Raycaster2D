@@ -22,19 +22,21 @@ void main()
     worldColor *= 1.1;
 
     if (renderMode == 0)
-        FragColor = worldColor;
+        FragColor = worldColor * 0.85;
 
     if (renderMode == 1)
-        FragColor = (lightingColor  * (worldColor));
-
-    if (renderMode == 2)
+        FragColor = (lightingColor + vec4(0.1))  * (worldColor);
+        
+    if (renderMode == 2) 
         FragColor = lightingColor * worldColor * lineOfSightColor;
 
- //   if (renderMode == 2)
- //       FragColor = lineOfSightColor;
 
-  //  FragColor = texture(lightingTexture, TexCoords) * worldColor;
-    //FragColor = lightingColor; 
-    if (renderMode == 2) 
-    FragColor = (worldColor * lineOfSightColor) + worldColor / 4;
+
+    const float gamma = 2.2;
+    vec3 hdrColor = FragColor.rgb;  
+    // reinhard tone mapping
+    vec3 mapped = hdrColor / (hdrColor + vec3(1.0));
+    // gamma correction 
+    mapped = pow(mapped, vec3(1.0 / gamma));
+    FragColor.rgb = mix(mapped, FragColor.rgb, 0.85);    
 } 

@@ -2,42 +2,47 @@
 #include "Renderer/TextBlitter.h"
 #include <random>
 
-Shader Renderer::s_test_shader;
+//Shader Renderer::s_test_shader;
 Shader Renderer::s_solid_color_shader;
 Shader Renderer::s_textued_2D_quad_shader;
-Shader Renderer::s_lighting_shader;
+Shader Renderer::s_player_line_of_sight_shader;
 Shader Renderer::s_composite;
 GBuffer Renderer::s_gBuffer;
 Shader Renderer::s_blurVerticalShader;
 Shader Renderer::s_blurHorizontalShader;
-Shader Renderer::s_outlineShader;
-Shader Renderer::s_pointLightShader;
-Shader Renderer::s_multipyShader;
+//Shader Renderer::s_outlineShader;
+//Shader Renderer::s_pointLightShader;
+//Shader Renderer::s_multipyShader;
+Shader Renderer::s_shadowCastingLightShader;
+Shader Renderer::s_nonShadowCastingLightShader;
+
 std::vector<BlurBuffer> Renderer::s_BlurBuffers;
 
-int Renderer::s_renderMode = 1;
+int Renderer::s_renderMode = 2;
 int Renderer::s_selectedLight = -1;
 int Renderer::s_hoveredLight = -1;
 
 void Renderer::Init()
 {
-    s_test_shader = Shader("Test Shader", "test.vert", "test.frag");
+    s_shadowCastingLightShader = Shader("Shadow Casting Light", "shadowcastinglight.vert", "shadowcastinglight.frag");
+    s_nonShadowCastingLightShader = Shader("Non-Shadow Casting Light", "nonshadowcastinglight.vert", "nonshadowcastinglight.frag");
     s_solid_color_shader = Shader("Solid Color Shader", "solidColor.vert", "solidColor.frag");
     s_textued_2D_quad_shader = Shader("Textured 2D Quad Shader", "textured2DquadShader.vert", "textured2DquadShader.frag");
-    s_lighting_shader = Shader("Lighting Shader", "lighting.vert", "lighting.frag");
+    s_player_line_of_sight_shader = Shader("Player Line Of Sight", "playerLineOfSight.vert", "playerLineOfSight.frag");
     s_composite = Shader("Composite Shader", "composite.vert", "composite.frag");
     s_blurVerticalShader = Shader("Blur V", "blurVertical.vert", "blur.frag", "NONE");
     s_blurHorizontalShader = Shader("Blur H", "blurHorizontal.vert", "blur.frag", "NONE");
-    s_outlineShader = Shader("Outline", "outline.vert", "outline.frag", "NONE");
-    s_pointLightShader = Shader("PointLight", "pointlight.vert", "pointlight.frag", "NONE");
-    s_multipyShader = Shader("Multiply", "multiply.vert", "multiply.frag", "NONE");
+    //s_outlineShader = Shader("Outline", "outline.vert", "outline.frag", "NONE");
+    //s_pointLightShader = Shader("PointLight", "pointlight.vert", "pointlight.frag", "NONE");
+    //s_multipyShader = Shader("Multiply", "multiply.vert", "multiply.frag", "NONE");
 
     Texture::LoadTexture("tile_dirt.png");
     Texture::LoadTexture("tile_wall.png");
     Texture::LoadTexture("tile_white.png");
     Texture::LoadTexture("CharSheet.png");
     Texture::LoadTexture("Light_Room.png");
-    Texture::LoadTexture("Light_Spot_E.png");
+    Texture::LoadTexture("Light_Spot.png");
+    Texture::LoadTexture("Light_Grate.png");
     Texture::LoadTexture("Light_Icon.png");
     Texture::LoadTexture("Light_Icon_Select.png");
       
@@ -50,9 +55,8 @@ void Renderer::Init()
     s_BlurBuffers.push_back(BlurBuffer(SCR_WIDTH / 16, SCR_HEIGHT / 16));
 }
 
-void Renderer::RenderFrame(Camera* camera)
+void Renderer::RenderFrame()
 {
-
     CheckForKeyPresses();
 
     RenderTiledWorld(&s_textued_2D_quad_shader);
@@ -64,31 +68,22 @@ void Renderer::RenderFrame(Camera* camera)
     for (auto p : WorldMap::s_visibilityPolygonPoints) {
         float x = std::get<1>(p);
         float y = std::get<2>(p);
-        DrawLineByWorldCoords(&s_solid_color_shader, x, y, Input::s_mouseWorldX, Input::s_mouseWorldY, HELL_RED);
+      //  DrawLineByWorldCoords(&s_solid_color_shader, x, y, Input::s_mouseWorldX, Input::s_mouseWorldY, HELL_RED);
     }
-
-    float playerX = Input::s_mouseWorldX;
-    float playerY = Input::s_mouseWorldY;
-
-    // player bounds poly
-    int lowerX = playerX - 200 * (1.777777);
-    int upperX = playerX + 200 * (1.777777);
-    int lowerY = playerY - 200;
-    int upperY = playerY + 200;
-
-    DrawLineByWorldCoords(&s_solid_color_shader, lowerX, lowerY, lowerX, upperY, HELL_YELLOW);
-    DrawLineByWorldCoords(&s_solid_color_shader, lowerX, upperY, upperX, upperY, HELL_YELLOW);
-    DrawLineByWorldCoords(&s_solid_color_shader, upperX, upperY, upperX, lowerY, HELL_YELLOW);
-    DrawLineByWorldCoords(&s_solid_color_shader, upperX, lowerY, lowerX, lowerY, HELL_YELLOW);
-
-
+    /*AABB screenAABB = Camera2D::GetSCreenAABB();
+    DrawLineByWorldCoords(&s_solid_color_shader, screenAABB.lowerX, screenAABB.lowerY, screenAABB.lowerX, screenAABB.upperY, HELL_YELLOW);
+    DrawLineByWorldCoords(&s_solid_color_shader, screenAABB.lowerX, screenAABB.upperY, screenAABB.upperX, screenAABB.upperY, HELL_YELLOW);
+    DrawLineByWorldCoords(&s_solid_color_shader, screenAABB.upperX, screenAABB.upperY, screenAABB.upperX, screenAABB.lowerY, HELL_YELLOW);
+    DrawLineByWorldCoords(&s_solid_color_shader, screenAABB.upperX, screenAABB.lowerY, screenAABB.lowerX, screenAABB.lowerY, HELL_YELLOW);
+    */
 
     if (s_renderMode != RENDER_MODE_UNLIT) {
-     //   LightingPass();
+        LightingPass();
     }
 
     if (s_renderMode == RENDER_MODE_LIT_WITH_LINE_OF_SIGHT)
-        RenderPlayerLineOfSight(&s_lighting_shader);
+        RenderPlayerLineOfSight(&s_player_line_of_sight_shader);
+
 
     RenderFinalImage(&s_composite);
 
@@ -98,26 +93,8 @@ void Renderer::RenderFrame(Camera* camera)
         RenderLightIcons(&s_textued_2D_quad_shader);
     }
 
-    // player visi poly
-    s_solid_color_shader.use();
-    for (auto p : WorldMap::s_visibilityPolygonPoints) {
-        float x = std::get<1>(p);
-        float y = std::get<2>(p);
-        DrawLineByWorldCoords(&s_solid_color_shader, x, y, Input::s_mouseWorldX, Input::s_mouseWorldY, HELL_RED);
-    }
-    DrawLineByWorldCoords(&s_solid_color_shader, lowerX, lowerY, lowerX, upperY, HELL_YELLOW);
-    DrawLineByWorldCoords(&s_solid_color_shader, lowerX, upperY, upperX, upperY, HELL_YELLOW);
-    DrawLineByWorldCoords(&s_solid_color_shader, upperX, upperY, upperX, lowerY, HELL_YELLOW);
-    DrawLineByWorldCoords(&s_solid_color_shader, upperX, lowerY, lowerX, lowerY, HELL_YELLOW);
-
-
-    for (glm::vec2 point : WorldMap::s_newPoints)
-    {
-        DrawPoint(&s_solid_color_shader, point.x, point.y, glm::vec3(0, 0, 1));
-
-    }
-
-
+    s_textued_2D_quad_shader.use();
+    s_textued_2D_quad_shader.setVec3("color", glm::vec3(1));
     TextBlitterPass(&s_textued_2D_quad_shader);
 }
 
@@ -127,33 +104,29 @@ void Renderer::CheckForKeyPresses()
         s_renderMode++;
     if (s_renderMode == 3)
         s_renderMode = 0;
+    
+    
+    if (s_selectedLight != -1) {
 
-    if (Input::s_keyDown[HELL_KEY_1])
-        s_selectedLight = 0;
-    if (Input::s_keyDown[HELL_KEY_2])
-        s_selectedLight = 1;
-    if (Input::s_keyDown[HELL_KEY_3])
-        s_selectedLight = 2;
-    if (Input::s_keyDown[HELL_KEY_4])
-        s_selectedLight = 3;
-    if (Input::s_keyDown[HELL_KEY_5])
-        s_selectedLight = 4;
+        if (Input::s_keyDown[HELL_KEY_Q])
+            Scene::s_lights[s_selectedLight].m_position = glm::vec2(Input::s_mouseWorldX, Input::s_mouseWorldY);
 
-    if (Input::s_keyDown[HELL_KEY_Q])
-        Scene::s_lights[s_selectedLight].m_position = glm::vec2(Input::s_mouseWorldX, Input::s_mouseWorldY);
+        if (Input::s_keyPressed[HELL_KEY_T])
+            Scene::s_lights[s_selectedLight].NextType();
 
-    if (Input::s_keyPressed[HELL_KEY_T])
-        Scene::s_lights[s_selectedLight].NextType();
+        if (Input::s_keyPressed[HELL_KEY_EQUAL])
+            Scene::s_lights[s_selectedLight].m_scale += 0.5f;
+        if (Input::s_keyPressed[HELL_KEY_MINUS])
+            Scene::s_lights[s_selectedLight].m_scale -= 0.5f;
 
-    if (Input::s_keyPressed[HELL_KEY_EQUAL])
-        Scene::s_lights[s_selectedLight].m_scale++;
-    if (Input::s_keyPressed[HELL_KEY_MINUS])
-        Scene::s_lights[s_selectedLight].m_scale--;
+        if (Input::s_keyPressed[HELL_KEY_RIGHT_BRACKET])
+            Scene::s_lights[s_selectedLight].m_strength += 0.1f;
+        if (Input::s_keyPressed[HELL_KEY_LEFT_BRACKET])
+            Scene::s_lights[s_selectedLight].m_strength -= 0.1f;
 
-    if (Input::s_keyPressed[HELL_KEY_RIGHT_BRACKET])
-        Scene::s_lights[s_selectedLight].m_strength += 0.1f;
-    if (Input::s_keyPressed[HELL_KEY_LEFT_BRACKET])
-        Scene::s_lights[s_selectedLight].m_strength -= 0.1f;
+        if (Input::s_keyPressed[HELL_KEY_R])
+            Scene::s_lights[s_selectedLight].RotateLight();
+    }
 }
 
 void Renderer::RenderTiledWorld(Shader* shader)
@@ -186,8 +159,9 @@ void Renderer::RenderEdgeMap(Shader* shader)
     shader->setMat4("view", Camera2D::s_viewMatrix);
     shader->setVec3("color", glm::vec3(1));
 
-    for (int i = 0; i < WorldMap::s_edges.size(); i++)
-        DrawEdge(&WorldMap::s_edges[i]);
+    for (int i = 0; i < WorldMap::s_edges.size(); i++) {
+        DrawLineByWorldCoords(shader, WorldMap::s_edges[i].sX, WorldMap::s_edges[i].sY, WorldMap::s_edges[i].eX, WorldMap::s_edges[i].eY, glm::vec3(1));
+    }
 }
 
 void Renderer::RenderPlayerLineOfSight(Shader* shader)
@@ -261,7 +235,7 @@ void Renderer::RenderPlayerLineOfSight(Shader* shader)
     }
 
     // Blur player visiblity
-   // DownScale(s_gBuffer.ID, GL_COLOR_ATTACHMENT1, 3);
+    DownScale(s_gBuffer.ID, GL_COLOR_ATTACHMENT1, 3);
 }
 
 void Renderer::DrawTile(Shader* shader, Tile tile, int gridX, int gridY)
@@ -283,20 +257,69 @@ void Renderer::LightingPass()
     glClearTexImage(s_gBuffer.gLineOfSight, 0, GL_RGBA, GL_FLOAT, white);
     glClearTexImage(s_gBuffer.gLighting, 0, GL_RGBA, GL_FLOAT, 0);
 
-    for (int i = 0; i < Scene::s_lights.size(); i++)
-     //   for (int i = 0; i < 2; i++)
-//    for (Light& light : Scene::s_lights)
-    {
-        Light& light = Scene::s_lights[i];
-        glBindFramebuffer(GL_FRAMEBUFFER, Light::s_fboID);
-        glClearTexImage(Light::s_polygonTextureID, 0, GL_RGBA, GL_FLOAT, white);
+    glDisable(GL_BLEND);
+    // glEnable(GL_DEPTH_TEST);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    glBlendEquation(GL_FUNC_ADD);
+    glActiveTexture(GL_TEXTURE0);
 
-        light.DrawSolidPolygon(&s_solid_color_shader);
-        light.DrawOutline(&s_outlineShader);
-        DownScale(light.s_fboID, GL_COLOR_ATTACHMENT1, 2);
 
-        light.DrawSpriteIntoLightingBuffer(&s_pointLightShader, s_gBuffer.ID);
+    s_shadowCastingLightShader.use();
+    s_shadowCastingLightShader.setMat4("view", Camera2D::s_viewMatrix);
+    s_shadowCastingLightShader.setInt("screenWidth", SCR_WIDTH);
+    s_shadowCastingLightShader.setInt("screenHeight", SCR_HEIGHT);
+
+    glViewport(0, 0, SCR_WIDTH, SCR_HEIGHT);
+
+    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, s_gBuffer.ID);
+    glDrawBuffer(GL_COLOR_ATTACHMENT2);
+
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_ONE, GL_ONE); // additive blending for multiple lights. you always forget how to do this.
+    glDisable(GL_CULL_FACE);
+
+    unsigned int static VAO = 0;
+    unsigned int static VBO;
+    if (VAO == 0) {
+        glGenVertexArrays(1, &VAO);
+        glGenBuffers(1, &VBO);
     }
+    glBindVertexArray(VAO);
+    glBindBuffer(GL_ARRAY_BUFFER, VBO);
+    glEnableVertexAttribArray(0);
+    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(glm::vec2), (void*)0);
+
+    glActiveTexture(GL_TEXTURE0);
+
+    // Render shadow casting lights
+    for (int i = 0; i < Scene::s_lights.size(); i++)
+    {
+        Light& light = Scene::s_lights[i];        
+        if (light.IsShadowCasting() && light.IsInScreenBounds())
+            light.DrawShadowCastingLight(&s_shadowCastingLightShader, s_gBuffer.ID);
+
+    }
+    glDisable(GL_BLEND);
+    DownScale(s_gBuffer.ID, GL_COLOR_ATTACHMENT2, 2);
+    glEnable(GL_BLEND);
+
+    // Render non shadow casting lights
+    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, s_gBuffer.ID);
+    glDrawBuffer(GL_COLOR_ATTACHMENT2);
+    s_nonShadowCastingLightShader.use();
+    s_nonShadowCastingLightShader.setMat4("view", Camera2D::s_viewMatrix);
+    for (Light& light : Scene::s_lights)
+    {
+        if (!light.IsShadowCasting()) {
+            s_nonShadowCastingLightShader.setInt("rotate", light.m_rotate);
+            s_nonShadowCastingLightShader.setVec3("color", light.m_color);
+            s_nonShadowCastingLightShader.setFloat("strength", light.m_strength);
+            int x = light.m_position.x - (light.m_texture->width / 2) * light.m_scale;
+            int y = light.m_position.y - (light.m_texture->height / 2) * light.m_scale;
+            Quad2D::RenderQuad(&s_nonShadowCastingLightShader, light.m_texture, x, y, light.m_scale);
+        }
+    }
+
 }
 
 void Renderer::HandleEditorInput()
@@ -349,47 +372,25 @@ void Renderer::HandleEditorInput()
     }
 
     // new light
-    if (Input::s_keyPressed[HELL_KEY_E]) {
-        Scene::AddLight(Input::s_mouseWorldX, Input::s_mouseWorldY, glm::vec3(1), 2, LightType::ROOM_LIGHT, 1);
+    if (Input::s_keyPressed[HELL_KEY_E] || Input::s_keyDown[HELL_KEY_V]) {
+        Scene::AddLight(Input::s_mouseWorldX, Input::s_mouseWorldY, glm::vec3(1), 2, ROOM_LIGHT, 1, 0);
         //s_selectedLight = -1;
     }
+
+    // color
+    if (Input::s_keyPressed[HELL_KEY_1])
+        Scene::s_lights[s_selectedLight].m_color = HELL_WHITE;
+    if (Input::s_keyPressed[HELL_KEY_2])
+        Scene::s_lights[s_selectedLight].m_color = HELL_RED;
+    if (Input::s_keyPressed[HELL_KEY_3])
+        Scene::s_lights[s_selectedLight].m_color = HELL_YELLOW;
+    if (Input::s_keyPressed[HELL_KEY_4])
+        Scene::s_lights[s_selectedLight].m_color = HELL_BLUE;
 
   //  if (Input::s_leftMouseDown && Renderer::s_renderMode == RENDER_MODE_UNLIT) {
 }
 
-void Renderer::DrawEdge(Edge* edge)
-{
-    unsigned int VAO;
-    unsigned int VBO;
 
-    float ndc_x = edge->sX / SCR_WIDTH * 2 - 1;
-    float ndc_y = (SCR_HEIGHT - edge->sY) / SCR_HEIGHT * 2 - 1;
-
-    float ndc_x2 = edge->eX / SCR_WIDTH * 2 - 1;
-    float ndc_y2 = (SCR_HEIGHT - edge->eY) / SCR_HEIGHT * 2 - 1;
-
-    float quadVertices[] = {
-        ndc_x,  ndc_y, 
-        ndc_x2, ndc_y2,
-    };
-        
-    glGenVertexArrays(1, &VAO);
-    glGenBuffers(1, &VBO);
-    glBindVertexArray(VAO);
-    glBindBuffer(GL_ARRAY_BUFFER, VBO);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(quadVertices), &quadVertices, GL_STATIC_DRAW);
-    glEnableVertexAttribArray(0);
-    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), (void*)0);
-   
-    glPointSize(5);
-    glBindVertexArray(VAO);
-    glEnable(GL_BLEND);
-    glDrawArrays(GL_POINTS, 0, 2);
-    glDrawArrays(GL_LINES, 0, 2);
-    glBindVertexArray(0);
-    glDeleteBuffers(1, &VBO);
-    glDeleteBuffers(1, &VAO);
-}
 
 void Renderer::TextBlitterPass(Shader* shader)
 {
@@ -435,14 +436,12 @@ void Renderer::DrawLine(Shader* shader, Line line, glm::mat4 modelMatrix = glm::
 
 void Renderer::HotLoadShaders()
 {
-    s_test_shader.ReloadShader();
-    s_lighting_shader.ReloadShader();
+    s_shadowCastingLightShader.ReloadShader();
+    s_nonShadowCastingLightShader.ReloadShader();
+    s_player_line_of_sight_shader.ReloadShader();
     s_solid_color_shader.ReloadShader();
     s_composite.ReloadShader();
     s_textued_2D_quad_shader.ReloadShader();
-    s_outlineShader.ReloadShader(); 
-    s_pointLightShader.ReloadShader(); 
-    s_multipyShader.ReloadShader();
 }
 
 void Renderer::DrawPoint(Shader* shader, int x, int y, glm::vec3 color)
@@ -485,9 +484,6 @@ void Renderer::RenderFinalImage(Shader* shader)
     glActiveTexture(GL_TEXTURE2);
     glBindTexture(GL_TEXTURE_2D, s_gBuffer.gLighting);
     glActiveTexture(GL_TEXTURE3);
-    glBindTexture(GL_TEXTURE_2D, Light::s_polygonTextureID);
-    glActiveTexture(GL_TEXTURE4);
-    glBindTexture(GL_TEXTURE_2D, Light::s_outlinedPolygonTextureID);
     glViewport(0, 0, CoreGL::s_windowWidth, CoreGL::s_windowHeight);
 
     static GLuint VAO = 0;
@@ -541,6 +537,9 @@ void Renderer::RenderLightIcons(Shader* shader)
 
 void Renderer::DownScale(int sourceFBO, int sourceColorAttachment, int levels)
 {
+    if (levels < 1)
+        return;
+
     Shader* blurHorizontalShader = &s_blurHorizontalShader;
     Shader* blurVerticalShader = &s_blurVerticalShader;
 
@@ -616,17 +615,15 @@ void Renderer::DownScale(int sourceFBO, int sourceColorAttachment, int levels)
         blurVerticalShader->use();
         blurVerticalShader->setFloat("targetHeight", SCR_WIDTH / factor);
         Quad2D::RenderFullScreenQuad(blurVerticalShader);
-
-
-        // blit back to original
-        if (i == levels - 1) {
-            glBindFramebuffer(GL_READ_FRAMEBUFFER, s_BlurBuffers[i].textureA);
-            glReadBuffer(GL_COLOR_ATTACHMENT0);
-            glBindFramebuffer(GL_DRAW_FRAMEBUFFER, sourceFBO);
-            glDrawBuffer(sourceColorAttachment);
-            glBlitFramebuffer(0, 0, SCR_WIDTH / factor, SCR_HEIGHT / factor, 0, 0, SCR_WIDTH, SCR_HEIGHT, GL_COLOR_BUFFER_BIT, GL_LINEAR);
-        }
     }
+    // blit back to original
+
+    glBindFramebuffer(GL_READ_FRAMEBUFFER, s_BlurBuffers[levels-1].textureA);
+    glReadBuffer(GL_COLOR_ATTACHMENT0);
+    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, sourceFBO);
+    glDrawBuffer(sourceColorAttachment);
+    glBlitFramebuffer(0, 0, SCR_WIDTH / factor, SCR_HEIGHT / factor, 0, 0, SCR_WIDTH, SCR_HEIGHT, GL_COLOR_BUFFER_BIT, GL_LINEAR);
+    
     // return the viewport to it's orginal fucking size. this has stumped you for so long twice now. adding this will stop it.
     glViewport(0, 0, SCR_WIDTH, SCR_HEIGHT);
 }

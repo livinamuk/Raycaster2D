@@ -203,20 +203,16 @@
     <None Include="res\shaders\composite.vert" />
     <None Include="res\shaders\decals.frag" />
     <None Include="res\shaders\decals.vert" />
-    <None Include="res\shaders\lighting.frag" />
-    <None Include="res\shaders\lighting.vert" />
-    <None Include="res\shaders\multiply.frag" />
-    <None Include="res\shaders\multiply.vert" />
-    <None Include="res\shaders\outline.frag" />
-    <None Include="res\shaders\outline.vert" />
-    <None Include="res\shaders\pointlight.frag" />
-    <None Include="res\shaders\pointlight.vert" />
+    <None Include="res\shaders\playerLineOfSight.frag" />
+    <None Include="res\shaders\playerLineOfSight.vert" />
+    <None Include="res\shaders\nonshadowcastinglight.frag" />
+    <None Include="res\shaders\nonshadowcastinglight.vert" />
+    <None Include="res\shaders\shadowcastinglight.frag" />
+    <None Include="res\shaders\shadowcastinglight.vert" />
     <None Include="res\shaders\skinnedmodel.frag" />
     <None Include="res\shaders\skinnedmodel.vert" />
     <None Include="res\shaders\solidColor.frag" />
     <None Include="res\shaders\solidColor.vert" />
-    <None Include="res\shaders\test.frag" />
-    <None Include="res\shaders\test.vert" />
     <None Include="res\shaders\textured2DquadShader.frag" />
     <None Include="res\shaders\textured2DquadShader.vert" />
   </ItemGroup>

@@ -1,33 +1,35 @@
 #pragma once
 #include "Header.h"
+#include "Renderer/Texture.h"
 
-enum LightType {
-	ROOM_LIGHT,
-	SPOT_LIGHT_E
-};
 
 class Light
 {
 public: // fields
 	glm::vec2 m_position;
 	glm::vec3 m_color; 
-	LightType m_type;
+	int m_type;
+	int m_rotate;
 	float m_strength;
 	float m_scale;
-
+	std::vector<std::tuple<float, float, float>> m_lightVisibilityPolygonPoints;
+	Texture* m_texture;
 
 public: // functions
 	//Light();
-	Light(glm::vec2 position, glm::vec3 lightColor, float scale, LightType type, float strength);
+	Light(glm::vec2 position, glm::vec3 lightColor, float scale, int type, float strength, int rotate);
 	void DrawSolidPolygon(Shader* shader);
 	void DrawOutline(Shader* shader);
-	void DrawSpriteIntoLightingBuffer(Shader* shader, int gBufferID);
+	void DrawShadowCastingLight(Shader* shader, int gBufferID);
 	void NextType();
+	void RotateLight();
+	void SetTextureFromType();
+	bool IsInScreenBounds();
+	bool IsShadowCasting();
 	//void RemoveGLData();
 
 	// configures framebuffer
 	static unsigned int s_fboID;
-	static unsigned int s_polygonTextureID;
-	static unsigned int s_outlinedPolygonTextureID;
+	static unsigned int s_accumulateLightingTexture;
 	static void Init(int screenWidth, int screenHeight); 
 };

@@ -301,11 +301,6 @@ void CoreGL::ClearDefaultFrameBufferToBlack()
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 }
 
-void CoreGL::SetCamera(Camera* camera)
-{
-	p_camera = camera;
-}
-
 
 /*void APIENTRY glDebugOutput(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar* message, const void* userParam)
 {

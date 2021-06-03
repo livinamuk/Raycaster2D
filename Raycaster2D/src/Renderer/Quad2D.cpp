@@ -74,7 +74,7 @@ void Quad2D::RenderQuad(Shader* shader, Texture* texture, int xScreenCoord, int 
 	glBindTexture(GL_TEXTURE_2D, texture->ID);
 
 	glBindVertexArray(VAO2); 
-	glEnable(GL_BLEND);
+	//glEnable(GL_BLEND);
 	glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 	glBindVertexArray(0);
 	shader->setVec3("color", glm::vec3(1));

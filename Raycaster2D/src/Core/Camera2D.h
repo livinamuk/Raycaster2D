@@ -5,6 +5,7 @@ class Camera2D
 {
 public: // functions
 	static void AdjustProjection();
+	static AABB GetSCreenAABB();
 
 public: // variables
 	static int s_scrollX;

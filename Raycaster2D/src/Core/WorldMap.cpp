@@ -13,21 +13,24 @@ int WorldMap::s_rayCount;
 
 void WorldMap::Update()
 {
+	s_rayCount = 0;
+
     // Draw tiles
 	if (Input::s_leftMouseDown && Renderer::s_renderMode == RENDER_MODE_UNLIT) {
 		s_map[Input::s_gridX][Input::s_gridY].tile = Tile::WALL;
-		BuildEdgeMapFromWorldMap();
+	//	BuildEdgeMapFromWorldMap();
 	}
 	if (Input::s_rightMouseDown && Renderer::s_renderMode == RENDER_MODE_UNLIT) {
 		s_map[Input::s_gridX][Input::s_gridY].tile = Tile::DIRT;
-		BuildEdgeMapFromWorldMap();
+	//	BuildEdgeMapFromWorldMap();
 	}
 	if (Input::s_keyPressed[HELL_KEY_N])
 		NewMap();
 
 
-	BuildEdgeMapFromWorldMap();
 
+	AABB screenAABB = Camera2D::GetSCreenAABB();
+	BuildEdgeMapFromWorldMap(&screenAABB);
 	s_visibilityPolygonPoints = CalculateVisibilityPolygon(Input::s_mouseWorldX, Input::s_mouseWorldY, 1.0f);
 }
 
@@ -64,7 +67,6 @@ void WorldMap::LoadMap()
 		y++;
 	}
 	MyFile.close();
-	BuildEdgeMapFromWorldMap();
 }
 
 void WorldMap::SaveMap()
@@ -90,7 +92,47 @@ void WorldMap::SaveInt(rapidjson::Value* object, std::string elementName, int nu
 }
 
 
-void WorldMap::BuildEdgeMapFromWorldMap()
+bool WorldMap::IsCellWithinAABB(int x, int y, AABB* aabb)
+{
+	float playerX = Input::s_mouseWorldX;
+	float playerY = Input::s_mouseWorldY;
+	int lowerX = playerX - 200 * (1.777777);
+	int upperX = playerX + 200 * (1.777777);
+	int lowerY = playerY - 200;
+	int upperY = playerY + 200;
+
+	if (!Input::s_keyDown[HELL_KEY_O])
+	{
+		if (x < aabb->lowerX / GRID_SIZE)
+			return true;
+
+		if (x > aabb->upperX / GRID_SIZE)
+			return true;
+
+		if (y < aabb->lowerY / GRID_SIZE)
+			return true;
+
+		if (y > aabb->upperY / GRID_SIZE)
+			return true;
+	}
+	// Check supplied AABB and also check camera
+	/*AABB camera = Camera2D::GetSCreenAABB();
+	if (x < camera.lowerX / GRID_SIZE)
+		return true;
+
+	if (x > camera.upperX / GRID_SIZE)
+		return true;
+
+	if (y < camera.lowerY / GRID_SIZE)
+		return true;
+
+	if (y > camera.upperY / GRID_SIZE) 
+		return true;*/
+
+	return s_map[x][y].IsObstacle();
+}
+
+void WorldMap::BuildEdgeMapFromWorldMap(AABB* aabb)
 {
 	// Clear "PolyMap"
 	s_edges.clear();
@@ -103,21 +145,13 @@ void WorldMap::BuildEdgeMapFromWorldMap()
 				s_map[x][y].edge_id[j] = 0;
 			}
 
-
-
-	Cell newMap[MAP_WIDTH][MAP_HEIGHT];
-	//memcpy(newMap, s_map, MAP_WIDTH * MAP_HEIGHT * sizeof(Cell));
-	for (int x = 0; x < MAP_WIDTH; x++)
-		for (int y = 0; y < MAP_HEIGHT; y++)
-		{
-			for (int i = 0; i < 4; i++) {
-				newMap[x][y].edge_exists[i] = s_map[x][y].edge_exists[i];
-				newMap[x][y].edge_id[i] = s_map[x][y].edge_id[i];
-			}
-			newMap[x][y].tile = s_map[x][y].tile;
-		}
-
-
+	// player bounds poly
+	float playerX = Input::s_mouseWorldX;
+	float playerY = Input::s_mouseWorldY;
+	int lowerX = playerX - 200 * (1.777777);
+	int upperX = playerX + 200 * (1.777777);
+	int lowerY = playerY + -200;
+	int upperY = playerY - 200;
 
 	// Iterate through region from top left to bottom right
 	for (int x = 0; x < MAP_WIDTH; x++)
@@ -130,10 +164,11 @@ void WorldMap::BuildEdgeMapFromWorldMap()
 			Cell* e = GetCellPointer(x + 1, y);
 
 			// If this cell exists, check if it needs edges
-			if (cell->IsObstacle())
+			//if (cell->IsObstacle())
+			if (IsCellWithinAABB(x,y, aabb))
 			{
 				// If this cell has no western neighbour, it needs a western edge
-				if (w && !w->IsObstacle())
+				if (w && !w->IsObstacle() && !IsCellWithinAABB(x - 1, y, aabb))
 				{
 					// It can either extend it from its northern neighbour if they have
 					// one, or It can start a new one.
@@ -162,7 +197,7 @@ void WorldMap::BuildEdgeMapFromWorldMap()
 				}
 				
 				// If this cell dont have an eastern neignbour, It needs a eastern edge
-				if (e && !e->IsObstacle())
+				if (e && !e->IsObstacle() && !IsCellWithinAABB(x + 1, y, aabb))
 				{
 					// It can either extend it from its northern neighbour if they have
 					// one, or It can start a new one.
@@ -190,7 +225,7 @@ void WorldMap::BuildEdgeMapFromWorldMap()
 					}
 				}
 				// If this cell doesnt have a northern neignbour, It needs a northern edge
-				if (n && !n->IsObstacle())
+				if (n && !n->IsObstacle() && !IsCellWithinAABB(x, y - 1, aabb))
 				{
 					// It can either extend it from its western neighbour if they have
 					// one, or It can start a new one.
@@ -218,7 +253,7 @@ void WorldMap::BuildEdgeMapFromWorldMap()
 					}
 				}
 				// If this cell doesnt have a southern neignbour, It needs a southern edge
-				if (s && !s->IsObstacle())
+				if (s && !s->IsObstacle() && !IsCellWithinAABB(x, y + 1, aabb))
 				{
 					// It can either extend it from its western neighbour if they have
 					// one, or It can start a new one.
@@ -273,12 +308,10 @@ std::vector<std::tuple<float, float, float>> WorldMap::CalculateVisibilityPolygo
 	// Get rid of existing polygon
 	std::vector<std::tuple<float, float, float>> visibilityPolygonPoints;
 
-	s_rayCount = 0;
-
-	float playerX = Input::s_mouseWorldX;
-	float playerY = Input::s_mouseWorldY;
 
 	// player bounds poly
+	float playerX = Input::s_mouseWorldX;
+	float playerY = Input::s_mouseWorldY;
 	int lowerX = playerX - 200 * (1.777777);
 	int upperX = playerX + 200 * (1.777777);
 	int lowerY = playerY+- 200;
@@ -376,7 +409,7 @@ std::vector<std::tuple<float, float, float>> WorldMap::CalculateVisibilityPolygo
 
 
 
-			LineIntersectionResult result = CheckLineIntersection(edge, leftRegionEdge);
+			//LineIntersectionResult result = CheckLineIntersection(edge, leftRegionEdge);
 		//	if (result.intersectionFound)
 	//			newPointList.push_back(glm::vec2(result.x, result.y));
 		}
@@ -503,7 +536,7 @@ std::vector<std::tuple<float, float, float>> WorldMap::CalculateVisibilityPolygo
 	return visibilityPolygonPoints;
 }
 
-LineIntersectionResult WorldMap::CheckLineIntersection(Edge lineA, Edge lineB)
+/*LineIntersectionResult WorldMap::CheckLineIntersection(Edge lineA, Edge lineB)
 {
 	LineIntersectionResult result;
 	result.intersectionFound = false;
@@ -534,7 +567,7 @@ LineIntersectionResult WorldMap::CheckLineIntersection(Edge lineA, Edge lineB)
 	}
 
 	return result;
-}
+}*/
 
 
 Cell* WorldMap::GetCellPointer(int x, int y)

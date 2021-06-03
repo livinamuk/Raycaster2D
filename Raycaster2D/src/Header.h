@@ -31,6 +31,7 @@
 #define HELL_RED  glm::vec3(1, 0, 0)
 #define HELL_WHITE  glm::vec3(1, 1, 1)
 #define HELL_YELLOW  glm::vec3(1, 1, 0)
+#define HELL_BLUE  glm::vec3(0, 0, 1)
 
 //#define SCR_WIDTH 1280//1920//2880 //1920//1280
 //#define SCR_HEIGHT 720//1080//1620//1080//720
@@ -135,9 +136,20 @@ bool operator==(const glm::vec2& other) const {
 	return x == other.x && y == other.y;
 }*/
 
+struct AABB {
+	int lowerX;
+	int upperX;
+	int lowerY;
+	int upperY;
+};
 
 struct LineIntersectionResult {
 	bool intersectionFound = false;
 	int x = 0;
 	int y = 0;
 };
+
+#define ROOM_LIGHT 0
+#define SPOT_LIGHT 1
+#define GRATE_LIGHT 2
+#define LIGHT_TYPE_COUNT 3

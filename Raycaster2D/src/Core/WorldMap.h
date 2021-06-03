@@ -10,7 +10,7 @@ public:
 	static void LoadMap();
 	static void SaveMap();
 	static void SaveInt(rapidjson::Value* object, std::string elementName, int number, rapidjson::Document::AllocatorType& allocator);
-	static void BuildEdgeMapFromWorldMap();
+	static void BuildEdgeMapFromWorldMap(AABB* aabb);
 	static void FindUniqueEdgePoints();
 	static Cell* GetCellPointer(int x, int y);
 	static std::vector<std::tuple<float, float, float>> CalculateVisibilityPolygon(float ox, float oy, float radius);
@@ -22,10 +22,10 @@ public:
 
 	static int s_rayCount;
 
-	static LineIntersectionResult CheckLineIntersection(Edge lineA, Edge lineB);
+	//static LineIntersectionResult CheckLineIntersection(Edge lineA, Edge lineB);
 
 	static std::vector<glm::vec2> s_newPoints;
 
-	static bool IsCellWithinRegionBounds(int x, int y);
+	static bool IsCellWithinAABB(int x, int y, AABB* aabb);
 };
 

@@ -9,13 +9,14 @@
 #include "Core/WorldMap.h"
 #include "Core/Camera2D.h"
 #include "Core/Scene.h"
+#include "Helpers/Util.h"
 
 class Renderer
 {
 	
 public: // functions
 	static void Init();
-	static void RenderFrame(Camera* camera);
+	static void RenderFrame();
 	static void CheckForKeyPresses();
 	static void RenderTiledWorld(Shader* shader); 
 	static void RenderEdgeMap(Shader* shader);
@@ -31,19 +32,18 @@ public: // functions
 	static void LightingPass();
 	static void HandleEditorInput();
 	static void DownScale(int sourceFBO, int sourceColorAttachment, int levels);
-	static void DrawEdge(Edge* edge);
 
 public: // variables
-	static Shader s_test_shader;
+	//static Shader s_test_shader;
 	static Shader s_solid_color_shader;
 	static Shader s_textued_2D_quad_shader;
-	static Shader s_lighting_shader;		
+	static Shader s_player_line_of_sight_shader;
 	static Shader s_blurVerticalShader;
 	static Shader s_blurHorizontalShader;
 	static Shader s_composite;
-	static Shader s_outlineShader;
-	static Shader s_pointLightShader;
-	static Shader s_multipyShader;
+	//static Shader s_outlineShader;
+	static Shader s_shadowCastingLightShader;
+	static Shader s_nonShadowCastingLightShader;
 	static GBuffer s_gBuffer;		
 	static std::vector<BlurBuffer> s_BlurBuffers;
 

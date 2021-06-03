@@ -43,6 +43,8 @@ void Input::MouseUpdate(double xpos, double ypos)
 		s_mouseX_Editor = xpos;
 		s_mouseY_Editor = ypos;
 	}
+
+	Camera2D::AdjustProjection();
 }
 
 void Input::HandleKeypresses()

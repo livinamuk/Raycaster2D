@@ -1,12 +1,14 @@
 #pragma once
 #include "Header.h"
 #include "Core/Light.h"
+#include "Helpers/Util.h"
 
 class Scene
 {
 public: // static functions
-	static void AddLight(int x, int y, glm::vec3 lightColor, float lightScale, LightType lightType, float lightStrength);
+	static void AddLight(int x, int y, glm::vec3 color, float scale, int type, float strength, int rotate);
 	static void SaveScene(std::string filename);
+	static void LoadScene(std::string filename);
 
 public: // static class varaibles
 	static std::vector<Light> s_lights;
