@@ -3,6 +3,15 @@
 #include <Windows.h>
 #include <random>
 
+int Util::StringToInt(std::string str)
+{
+	int num;
+	std::stringstream ss;
+	ss << str;
+	ss >> num;
+	return num;
+}
+
 bool Util::GetRayPlaneIntersecion(const glm::vec3& origin, const glm::vec3& dir, const glm::vec3& plane_point, const glm::vec3& normal, float& out)
 {
 	float d = dot(dir, normal);

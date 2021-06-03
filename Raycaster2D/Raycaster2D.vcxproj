@@ -153,7 +153,13 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="src\Core\Camera2D.cpp" />
+    <ClCompile Include="src\Core\Light.cpp" />
+    <ClCompile Include="src\Core\Scene.cpp" />
+    <ClCompile Include="src\Core\WorldMap.cpp" />
+    <ClCompile Include="src\Renderer\BlurBuffer.cpp" />
     <ClCompile Include="src\Renderer\GBuffer.cpp" />
+    <ClCompile Include="src\Renderer\Quad2D.cpp" />
     <ClCompile Include="src\Renderer\Renderer.cpp" />
     <ClCompile Include="src\Core\Camera.cpp" />
     <ClCompile Include="src\Core\CoreGL.cpp" />
@@ -168,7 +174,13 @@
     <ClCompile Include="vendor\stb_image\stb_image.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="src\Core\Camera2D.h" />
+    <ClInclude Include="src\Core\Light.h" />
+    <ClInclude Include="src\Core\Scene.h" />
+    <ClInclude Include="src\Core\WorldMap.h" />
+    <ClInclude Include="src\Renderer\BlurBuffer.h" />
     <ClInclude Include="src\Renderer\GBuffer.h" />
+    <ClInclude Include="src\Renderer\Quad2D.h" />
     <ClInclude Include="src\Renderer\Renderer.h" />
     <ClInclude Include="src\Core\Camera.h" />
     <ClInclude Include="src\Core\CoreGL.h" />
@@ -187,8 +199,18 @@
     <ClInclude Include="vendor\stb_image\stb_image.h" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="res\shaders\composite.frag" />
+    <None Include="res\shaders\composite.vert" />
     <None Include="res\shaders\decals.frag" />
     <None Include="res\shaders\decals.vert" />
+    <None Include="res\shaders\lighting.frag" />
+    <None Include="res\shaders\lighting.vert" />
+    <None Include="res\shaders\multiply.frag" />
+    <None Include="res\shaders\multiply.vert" />
+    <None Include="res\shaders\outline.frag" />
+    <None Include="res\shaders\outline.vert" />
+    <None Include="res\shaders\pointlight.frag" />
+    <None Include="res\shaders\pointlight.vert" />
     <None Include="res\shaders\skinnedmodel.frag" />
     <None Include="res\shaders\skinnedmodel.vert" />
     <None Include="res\shaders\solidColor.frag" />

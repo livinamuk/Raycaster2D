@@ -41,4 +41,6 @@ public:
 	static glm::mat4 Mat4InitTranslationTransform(float x, float y, float z);		
 	static bool StrCmp(const char* queryA, const char* queryB); 
 	static const char* CopyConstChar(const char* text);
+
+	static int StringToInt(std::string str);
 };

@@ -6,9 +6,14 @@
 //#include "Game.h"
 //#include "Logic/WeaponLogic.h"
 #include <algorithm>
+#include "Camera2D.h"
 
+int Input::s_gridX;
+int Input::s_gridY;
 int Input::s_mouseX;
 int Input::s_mouseY;
+int Input::s_mouseWorldX;
+int Input::s_mouseWorldY;
 int Input::s_storedMouseX;
 int Input::s_storedMouseY;
 int Input::s_mouseX_Editor;
@@ -30,6 +35,10 @@ void Input::MouseUpdate(double xpos, double ypos)
 	s_mouseX = xpos;
 	s_mouseY = ypos;
 
+
+	s_gridX = s_mouseWorldX / GRID_SIZE;
+	s_gridY = s_mouseWorldY / GRID_SIZE;
+
 	if (s_showCursor) {
 		s_mouseX_Editor = xpos;
 		s_mouseY_Editor = ypos;
@@ -49,34 +58,9 @@ void Input::HandleKeypresses()
 	// Toggle fullscreen
 	if (s_keyPressed[HELL_KEY_F]) {
 		CoreGL::ToggleFullScreen();
+
+		/*for (Light& light : Scene::s_lights) {
+			light.ConfigureFrameBuffer(CoreGL::s_windowWidth, CoreGL::s_windowHeight);
+		}*/
 	}
-
-	// Toggle Bullet Debug Drawer
-	//if (s_keyPressed[HELL_KEY_B])
-	//	Renderer::m_showBulletDebug = !Renderer::m_showBulletDebug;
-
-	// Toggle ImGui
-	/*if (s_keyPressed[HELL_KEY_GRAVE_ACCENT])
-	{
-		CoreImGui::s_Show = !CoreImGui::s_Show;
-
-		// Always show cursor in level editor, and hide it when you close 
-		if (CoreImGui::s_Show)
-			s_showCursor = true;
-		else
-			s_showCursor = false;
-	}
-
-	if (Input::s_keyPressed[HELL_KEY_G])
-		WeaponLogic::m_singleHanded = !WeaponLogic::m_singleHanded;*/
-
-
-	// Mouse sensititivity
-	/*if (Input::s_keyPressed[HELL_KEY_MINUS])
-		Config::MOUSE_SESNSITIVITY -= 10; 
-	if (Input::s_keyPressed[HELL_KEY_EQUAL])
-		Config::MOUSE_SESNSITIVITY += 10;
-
-	Config::MOUSE_SESNSITIVITY = std::min((int)Config::MOUSE_SESNSITIVITY, 200);
-	Config::MOUSE_SESNSITIVITY = std::max((int)Config::MOUSE_SESNSITIVITY, 10);*/
 }

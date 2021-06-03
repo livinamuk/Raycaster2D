@@ -8,7 +8,8 @@ class Texture
 public: // Methods
 	Texture(std::string filename);
 	static void LoadTexture(std::string filename);
-	static GLuint GetTexIDByTexName(std::string name);
+	static GLuint GetTexIDByTexName(std::string name); 
+	static Texture* GetTexByName(std::string name);
 
 private: 
 	void ReadFromDisk();

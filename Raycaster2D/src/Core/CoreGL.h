@@ -25,6 +25,8 @@
 		
 		static void SetCamera(Camera* camera);
 
+		static int GetFPS();
+
 		//static void ToggleFullscreen();
 
 	public: // static variables

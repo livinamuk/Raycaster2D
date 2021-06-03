@@ -24,6 +24,16 @@ GLuint Texture::GetTexIDByTexName(std::string name)
 	return -1;
 }
 
+Texture* Texture::GetTexByName(std::string name)
+{
+	for (Texture& texture : s_textures)
+	{
+		if (name == texture.name)
+			return &texture;
+	}
+	return nullptr;
+}
+
 void Texture::ReadFromDisk()
 {	
 	stbi_set_flip_vertically_on_load(false);

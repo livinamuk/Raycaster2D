@@ -189,7 +189,11 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height)
 
 void mouse_callback(GLFWwindow* window, double xpos, double ypos)
 {
-	Input::MouseUpdate(xpos, ypos);
+	//Input::s_systemMouseX = xpos;
+	//Input::s_systemMouseX = ypos;
+	int x = xpos * (SCR_WIDTH / CoreGL::s_windowWidth);
+	int y = ypos * (SCR_HEIGHT / CoreGL::s_windowHeight);
+	Input::MouseUpdate(x, y);
 }
 
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods)
@@ -364,9 +368,23 @@ void CoreGL::SetCamera(Camera* camera)
 void CoreGL::ToggleFullScreen()
 {
 	CoreGL::SetFullscreen(!CoreGL::IsFullscreen());
-
-	Renderer::s_gBuffer.Configure(CoreGL::s_windowWidth, CoreGL::s_windowHeight);
-
 	std::cout << "Switching too: " << CoreGL::s_windowWidth << " x " << CoreGL::s_windowHeight << "\n";
-	p_camera->m_disableMouseLookTimer = 10;
+	//p_camera->m_disableMouseLookTimer = 10;
+}
+
+int CoreGL::GetFPS()
+{
+	static float framesPerSecond = 0.0f;
+	static int fps;
+	static float lastTime = 0.0f;
+	float currentTime = GetTickCount() * 0.001f;
+	++framesPerSecond;
+	//glPrint("Current Frames Per Second: %d\n\n", fps);
+	if (currentTime - lastTime > 1.0f)
+	{
+		lastTime = currentTime;
+		fps = (int)framesPerSecond;
+		framesPerSecond = 0;
+	}
+	return fps;
 }

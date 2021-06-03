@@ -3,9 +3,10 @@
 GBuffer::GBuffer(int width, int height)
 {
 	glGenFramebuffers(1, &ID);
-	glGenTextures(1, &gAlbedo);
-	glGenTextures(1, &rboDepth); 
-	Configure(width, height);
+	glGenTextures(1, &gWorld);
+	glGenTextures(1, &gLighting);
+	glGenTextures(1, &gLineOfSight);
+	Configure(width, height); 
 }
 
 GBuffer::GBuffer()
@@ -20,20 +21,28 @@ void GBuffer::Configure(int width, int height)
 {
 	glBindFramebuffer(GL_FRAMEBUFFER, ID);
 
-	glBindTexture(GL_TEXTURE_2D, gAlbedo);
+	glBindTexture(GL_TEXTURE_2D, gWorld);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_FLOAT, NULL);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, gWorld, 0);
+
+	glBindTexture(GL_TEXTURE_2D, gLineOfSight);
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_FLOAT, NULL);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, gAlbedo, 0);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, gLineOfSight, 0);
 
-	unsigned int attachments[1] = { GL_COLOR_ATTACHMENT0};
-	glDrawBuffers(1, attachments);
-
-	glBindTexture(GL_TEXTURE_2D, rboDepth);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH32F_STENCIL8, width, height, 0, GL_DEPTH_STENCIL, GL_FLOAT_32_UNSIGNED_INT_24_8_REV, NULL);
+	glBindTexture(GL_TEXTURE_2D, gLighting);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_FLOAT, NULL);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_TEXTURE_2D, rboDepth, 0);
+	//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT2, GL_TEXTURE_2D, gLighting, 0);
+	
+	unsigned int attachments[3] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2 };
+	glDrawBuffers(3, attachments);
 
 	auto fboStatus = glCheckFramebufferStatus(GL_FRAMEBUFFER);
 

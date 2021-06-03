@@ -11,11 +11,16 @@ public: // functions
 public: // variables
 	static int s_mouseX;
 	static int s_mouseY;
+	static int s_mouseWorldX;
+	static int s_mouseWorldY;
 	static int s_storedMouseX;
 	static int s_storedMouseY;
 	static int s_mouseX_Editor;
 	static int s_mouseY_Editor;
 	static bool s_showCursor;
+
+	static int s_gridX;
+	static int s_gridY;
 
 	static bool s_keyPressed[350];
 	static bool s_keyDown[350];

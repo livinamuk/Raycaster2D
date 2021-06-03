@@ -18,15 +18,31 @@
 #include <iostream>
 #include "Renderer/Transform.h"
 #include <map>
+#include <algorithm>
 
+#include "rapidjson/document.h"
+#include <rapidjson/filereadstream.h>
+#include <rapidjson/istreamwrapper.h>
+#include <rapidjson/writer.h>
+#include <rapidjson/stringbuffer.h>
+#include <rapidjson/ostreamwrapper.h>
+#include <rapidjson/prettywriter.h>
+
+#define HELL_RED  glm::vec3(1, 0, 0)
+#define HELL_WHITE  glm::vec3(1, 1, 1)
+#define HELL_YELLOW  glm::vec3(1, 1, 0)
 
 //#define SCR_WIDTH 1280//1920//2880 //1920//1280
 //#define SCR_HEIGHT 720//1080//1620//1080//720
-#define SCR_WIDTH 1920//1920//2880 //1920//1280
-#define SCR_HEIGHT 1080//1080//1620//1080//720
+#define SCR_WIDTH 960.0f// 1920.0f//1920//2880 //1920//1280
+#define SCR_HEIGHT 540.0f//1080.0f//1080//1620//1080//720
 #define NEAR_PLANE 0.01f
 #define FAR_PLANE 50.0f
 #define HELL_PI	(float)3.14159265358979323846
+
+#define GRID_SIZE (int)32
+#define MAP_HEIGHT (int)36
+#define MAP_WIDTH (int)60
 
 enum FileType { FBX, OBJ, PNG, JPG, UNKNOWN };
 
@@ -66,19 +82,6 @@ struct Line {
 };
 
 
-#define WORLD_GROUND_SIZE	150.0f
-#define WORLD_GROUND_HEIGHT	1.0f
-
-#define DEBUG_COLOR_DOOR btVector3(0.4f, 0.5f, 0.5f)
-#define DEBUG_COLOR_WALL btVector3(0.6f, 0.5f, 0.5f)
-#define DEBUG_COLOR_RAMP btVector3(0.9f, 0.8f, 0.8f)
-#define DEBUG_COLOR_YELLOW btVector3(1.0f, 1.0f, 0.0f)
-#define DEBUG_COLOR_GROUND btVector3(0.2f, 0.2f, 0.2f)
-#define DEBUG_COLOR_STATIC_ENTITY btVector3(1, 1, 0)
-
-#define ZERO_MEM(a) memset(a, 0, sizeof(a))
-#define ARRAY_SIZE_IN_ELEMENTS(a) (sizeof(a)/sizeof(a[0]))
-#define SAFE_DELETE(p) if (p) { delete p; p = NULL; }
 #define ToRadian(x) (float)(((x) * HELL_PI / 180.0f))
 #define ToDegree(x) (float)(((x) * 180.0f / HELL_PI)) 
 
@@ -91,12 +94,50 @@ struct Line {
 #define BONE_WEIGHT_LOCATION 6
 
 enum VB_TYPES {
-	INDEX_BUFFER,
 	POS_VB,
-	NORMAL_VB,
 	TEXCOORD_VB,
-	TANGENT_VB,
-	BITANGENT_VB,
-	BONE_VB,
-	NUM_VBs
 };  
+
+enum Tile {
+	DIRT,
+	WALL,
+}; 
+
+struct Cell {
+	Tile tile;
+	int edge_id[4];
+	bool edge_exists[4];
+
+	bool IsObstacle() {
+		return (tile == Tile::WALL);
+	}
+};
+
+using JSONDocument = rapidjson::GenericDocument<rapidjson::UTF8<>>;
+using JSONValue = rapidjson::GenericValue<rapidjson::UTF8<>>;
+
+struct Edge {
+	int sX, sY;
+	int eX, eY;
+};
+
+#define NORTH 0
+#define SOUTH 1
+#define EAST 2
+#define WEST 3
+
+#define RENDER_MODE_UNLIT 0
+#define RENDER_MODE_LIT 1
+#define RENDER_MODE_LIT_WITH_LINE_OF_SIGHT 2
+
+/*
+bool operator==(const glm::vec2& other) const {
+	return x == other.x && y == other.y;
+}*/
+
+
+struct LineIntersectionResult {
+	bool intersectionFound = false;
+	int x = 0;
+	int y = 0;
+};

@@ -42,8 +42,8 @@ void TextBlitter::DrawTextBlit(Shader* shader)
 		return;
 
 	// Have to hard code this coz otherwise the text is the same size in pixels regardless of resolution.
-	float screenWidth = 1920;
-	float screenHeight = 1080;
+	float screenWidth = SCR_WIDTH;
+	float screenHeight = SCR_HEIGHT;
 
 	// If you are actually blitting (a non -1 speed), and have already waited long enough, then don't draw shit
 	if (s_blitSpeed != -1 && s_waitTimer > s_timeToWait)
