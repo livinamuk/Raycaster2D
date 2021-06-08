@@ -1,6 +1,5 @@
 #pragma once
 #include "Header.h"
-#include "Camera.h"
 #include "Renderer/Renderer.h"
 
 	class CoreGL
@@ -23,8 +22,6 @@
 		static void CheckGLError_(const char* file, int line);
 		static void ClearDefaultFrameBufferToBlack();
 		
-		static void SetCamera(Camera* camera);
-
 		static int GetFPS();
 
 		//static void ToggleFullscreen();
@@ -40,5 +37,4 @@
 		static int windowedHeight;
 		static int windowedPosX;
 		static int windowedPosY;
-		static Camera* p_camera;
 	};

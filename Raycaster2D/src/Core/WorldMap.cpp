@@ -15,31 +15,27 @@ void WorldMap::Update()
 {
 	s_rayCount = 0;
 
-    // Draw tiles
-	if (Input::s_leftMouseDown && Renderer::s_renderMode == RENDER_MODE_UNLIT) {
-		s_map[Input::s_gridX][Input::s_gridY].tile = Tile::WALL;
-	//	BuildEdgeMapFromWorldMap();
-	}
-	if (Input::s_rightMouseDown && Renderer::s_renderMode == RENDER_MODE_UNLIT) {
-		s_map[Input::s_gridX][Input::s_gridY].tile = Tile::DIRT;
-	//	BuildEdgeMapFromWorldMap();
-	}
+	// Draw tiles
+	if (Renderer::s_hoveredLight == -1 && Renderer::s_selectedLight == -1 && Input::s_leftMouseDown && Renderer::s_editorMode)
+		WorldMap::SetCell(Input::s_gridX, Input::s_gridY, Tile::WALL);
+
+	if (Renderer::s_hoveredLight == -1 && Renderer::s_selectedLight == -1 && Input::s_rightMouseDown && Renderer::s_editorMode)
+		WorldMap::SetCell(Input::s_gridX, Input::s_gridY, Tile::DIRT);
+
 	if (Input::s_keyPressed[HELL_KEY_N])
 		NewMap();
 
 
 
-	AABB screenAABB = Camera2D::GetSCreenAABB();
-	BuildEdgeMapFromWorldMap(&screenAABB);
-	s_visibilityPolygonPoints = CalculateVisibilityPolygon(Input::s_mouseWorldX, Input::s_mouseWorldY, 1.0f);
+
 }
 
 void WorldMap::NewMap()
 {
-    // Initialise map to dirt
-    for (int x = 0; x < MAP_WIDTH; x++)
-        for (int y = 0; y < MAP_HEIGHT; y++)
-            s_map[x][y].tile = Tile::DIRT;
+	// Initialise map to dirt
+	for (int x = 0; x < MAP_WIDTH; x++)
+		for (int y = 0; y < MAP_HEIGHT; y++)
+			s_map[x][y].tile = Tile::DIRT;
 }
 
 void WorldMap::LoadMap()
@@ -48,14 +44,14 @@ void WorldMap::LoadMap()
 	std::ifstream MyFile("res/WorldMap.txt");
 	int y = 0;
 
-	while (std::getline(MyFile, line)) {		
-		for (int x = 0; x < line.length(); x++)	{
-			
-			int num; 
+	while (std::getline(MyFile, line)) {
+		for (int x = 0; x < line.length(); x++) {
+
+			int num;
 			std::stringstream ss;
 			ss << line[x];
-			ss >> num; 
-			
+			ss >> num;
+
 			if (num == 0)
 				s_map[x][y].tile = Tile::DIRT;
 			else
@@ -73,7 +69,7 @@ void WorldMap::SaveMap()
 {
 	std::ofstream MyFile("res/WorldMap.txt");
 
-	for (int y = 0; y < MAP_HEIGHT; y++) 
+	for (int y = 0; y < MAP_HEIGHT; y++)
 	{
 		for (int x = 0; x < MAP_WIDTH; x++)
 			MyFile << s_map[x][y].tile;
@@ -94,45 +90,52 @@ void WorldMap::SaveInt(rapidjson::Value* object, std::string elementName, int nu
 
 bool WorldMap::IsCellWithinAABB(int x, int y, AABB* aabb)
 {
-	float playerX = Input::s_mouseWorldX;
-	float playerY = Input::s_mouseWorldY;
-	int lowerX = playerX - 200 * (1.777777);
-	int upperX = playerX + 200 * (1.777777);
-	int lowerY = playerY - 200;
-	int upperY = playerY + 200;
+	// this actually returns if the cell is outside the AABB 
 
-	if (!Input::s_keyDown[HELL_KEY_O])
-	{
-		if (x < aabb->lowerX / GRID_SIZE)
-			return true;
+	int cellThreshold = 5; // OPTIMIZATION: you could consider setting this to 0 and increasing the size of the width and height of light somewhere...
 
-		if (x > aabb->upperX / GRID_SIZE)
-			return true;
-
-		if (y < aabb->lowerY / GRID_SIZE)
-			return true;
-
-		if (y > aabb->upperY / GRID_SIZE)
-			return true;
-	}
-	// Check supplied AABB and also check camera
-	/*AABB camera = Camera2D::GetSCreenAABB();
-	if (x < camera.lowerX / GRID_SIZE)
+	if (x < (aabb->lowerX / GRID_SIZE) - cellThreshold)
 		return true;
 
-	if (x > camera.upperX / GRID_SIZE)
+	if (x > (aabb->upperX / GRID_SIZE) + cellThreshold)
 		return true;
 
-	if (y < camera.lowerY / GRID_SIZE)
+	if (y < (aabb->lowerY / GRID_SIZE) - cellThreshold)
 		return true;
 
-	if (y > camera.upperY / GRID_SIZE) 
-		return true;*/
+	if (y > (aabb->upperY / GRID_SIZE) + cellThreshold)
+		return true;
 
+	// what is this even doing??
 	return s_map[x][y].IsObstacle();
 }
 
-void WorldMap::BuildEdgeMapFromWorldMap(AABB* aabb)
+bool WorldMap::IsObstacleOrOutOfMapBounds(int x, int y)
+{
+	if (x < 0 || y < 0 << x >= MAP_WIDTH || y >= MAP_HEIGHT || s_map[x][y].IsObstacle())
+		return true;
+	else
+		return false;
+}
+
+bool WorldMap::IsPixelPositionInMapBounds(int x, int y)
+{
+	if (x < 0 || y < 0 || x > MAP_WIDTH * GRID_SIZE || y > MAP_HEIGHT * GRID_SIZE)
+		return false;
+	else
+		return true;
+}
+
+void WorldMap::SetCell(int x, int y, Tile tile)
+{
+	if (x < 0 || y < 0 || x > MAP_WIDTH || y > MAP_HEIGHT)
+		return;
+	s_map[x][y].tile = tile;
+
+	Scene::UpdateAllLights();
+}
+
+void WorldMap::BuildEdgeMapFromWorldMap(AABB* aabb, int inset)
 {
 	// Clear "PolyMap"
 	s_edges.clear();
@@ -142,19 +145,15 @@ void WorldMap::BuildEdgeMapFromWorldMap(AABB* aabb)
 			for (int j = 0; j < 4; j++)
 			{
 				s_map[x][y].edge_exists[j] = false;
-				s_map[x][y].edge_id[j] = 0;
+				s_map[x][y].edge_id[j] = -1;
 			}
 
-	// player bounds poly
-	float playerX = Input::s_mouseWorldX;
-	float playerY = Input::s_mouseWorldY;
-	int lowerX = playerX - 200 * (1.777777);
-	int upperX = playerX + 200 * (1.777777);
-	int lowerY = playerY + -200;
-	int upperY = playerY - 200;
+	// container to store found obstacles within AABB
+	std::vector<Coord2D> wallsWithinRange;
 
 	// Iterate through region from top left to bottom right
 	for (int x = 0; x < MAP_WIDTH; x++)
+	{
 		for (int y = 0; y < MAP_HEIGHT; y++)
 		{
 			Cell* cell = &s_map[x][y];
@@ -165,8 +164,11 @@ void WorldMap::BuildEdgeMapFromWorldMap(AABB* aabb)
 
 			// If this cell exists, check if it needs edges
 			//if (cell->IsObstacle())
-			if (IsCellWithinAABB(x,y, aabb))
+			if (cell->IsObstacle() && IsCellWithinAABB(x, y, aabb))
 			{
+				// store it
+				wallsWithinRange.push_back(Coord2D(x, y));
+
 				// If this cell has no western neighbour, it needs a western edge
 				if (w && !w->IsObstacle() && !IsCellWithinAABB(x - 1, y, aabb))
 				{
@@ -183,10 +185,10 @@ void WorldMap::BuildEdgeMapFromWorldMap(AABB* aabb)
 					{
 						// Northern neighbour does not have one, so create one
 						Edge edge;
-						edge.sX = x * GRID_SIZE;
-						edge.sY = y * GRID_SIZE;
-						edge.eX = x * GRID_SIZE;
-						edge.eY = (y+1) * GRID_SIZE;
+						edge.sX = x * GRID_SIZE + inset;
+						edge.sY = y * GRID_SIZE + inset;
+						edge.eX = x * GRID_SIZE + inset;
+						edge.eY = (y + 1) * GRID_SIZE - inset;
 						// Add edge to Polygon Pool
 						int edge_id = s_edges.size();
 						s_edges.push_back(edge);
@@ -195,7 +197,7 @@ void WorldMap::BuildEdgeMapFromWorldMap(AABB* aabb)
 						cell->edge_exists[WEST] = true;
 					}
 				}
-				
+
 				// If this cell dont have an eastern neignbour, It needs a eastern edge
 				if (e && !e->IsObstacle() && !IsCellWithinAABB(x + 1, y, aabb))
 				{
@@ -212,10 +214,10 @@ void WorldMap::BuildEdgeMapFromWorldMap(AABB* aabb)
 					{
 						// Northern neighbour does not have one, so create one
 						Edge edge;
-						edge.sX = (x+1) * GRID_SIZE;
-						edge.sY = y * GRID_SIZE;
-						edge.eX = (x+1) * GRID_SIZE;
-						edge.eY = (y + 1) * GRID_SIZE; 						
+						edge.sX = (x + 1) * GRID_SIZE - inset;
+						edge.sY = y * GRID_SIZE + inset;
+						edge.eX = (x + 1) * GRID_SIZE - inset;
+						edge.eY = (y + 1) * GRID_SIZE - inset;
 						// Add edge to Polygon Pool
 						int edge_id = s_edges.size();
 						s_edges.push_back(edge);
@@ -240,10 +242,10 @@ void WorldMap::BuildEdgeMapFromWorldMap(AABB* aabb)
 					{
 						// Western neighbour does not have one, so create one
 						Edge edge;
-						edge.sX = (x) * GRID_SIZE;
-						edge.sY = (y) * GRID_SIZE;
-						edge.eX = (x + 1) * GRID_SIZE;
-						edge.eY = (y) * GRID_SIZE;
+						edge.sX = (x)*GRID_SIZE + inset;
+						edge.sY = (y)*GRID_SIZE + inset;
+						edge.eX = (x + 1) * GRID_SIZE - inset;
+						edge.eY = (y)*GRID_SIZE + inset;
 						// Add edge to Polygon Pool
 						int edge_id = s_edges.size();
 						s_edges.push_back(edge);
@@ -257,7 +259,7 @@ void WorldMap::BuildEdgeMapFromWorldMap(AABB* aabb)
 				{
 					// It can either extend it from its western neighbour if they have
 					// one, or It can start a new one.
-					if(w && w->edge_exists[SOUTH])
+					if (w && w->edge_exists[SOUTH])
 					{
 						// Western neighbour has one, so grow it eastwards
 						s_edges[w->edge_id[SOUTH]].eX += GRID_SIZE;
@@ -268,10 +270,10 @@ void WorldMap::BuildEdgeMapFromWorldMap(AABB* aabb)
 					{
 						// Western neighbour does not have one, so I need to create one
 						Edge edge;
-						edge.sX = (x)*GRID_SIZE;
-						edge.sY = (y+1)*GRID_SIZE;
-						edge.eX = (x + 1) * GRID_SIZE;
-						edge.eY = (y+1)*GRID_SIZE;
+						edge.sX = (x)*GRID_SIZE + inset;
+						edge.sY = (y + 1) * GRID_SIZE - inset;
+						edge.eX = (x + 1) * GRID_SIZE - inset;
+						edge.eY = (y + 1) * GRID_SIZE - inset;
 						// Add edge to Polygon Pool
 						int edge_id = s_edges.size();
 						s_edges.push_back(edge);
@@ -282,7 +284,55 @@ void WorldMap::BuildEdgeMapFromWorldMap(AABB* aabb)
 				}
 			}
 		}
-		FindUniqueEdgePoints();
+	}
+
+	for (Coord2D& wall : wallsWithinRange)
+	{
+		int x = wall.x;
+		int y = wall.y;
+		Cell* cell = &s_map[x][y];
+		Cell* n = GetCellPointer(x, y - 1);
+		Cell* s = GetCellPointer(x, y + 1);
+		Cell* w = GetCellPointer(x - 1, y);
+		Cell* e = GetCellPointer(x + 1, y);
+		Cell* sw = GetCellPointer(x - 1, y + 1);
+		Cell* se = GetCellPointer(x + 1, y + 1);
+		Cell* ne = GetCellPointer(x + 1, y - 1);
+		Cell* nw = GetCellPointer(x - 1, y - 1);
+
+		// South west
+		if (w && w->IsObstacle() && s && s->IsObstacle() && sw && !sw->IsObstacle()) {	
+			if (s->edge_id[WEST] != -1)
+				s_edges[s->edge_id[WEST]].sY -= inset * 2;
+			if (w->edge_id[SOUTH] != -1)
+				s_edges[w->edge_id[SOUTH]].eX += inset * 2;
+		}
+		
+		// South east
+		if (e && e->IsObstacle() && s && s->IsObstacle() && se && !se->IsObstacle()) {
+			if (s->edge_id[EAST] != -1)
+				s_edges[s->edge_id[EAST]].sY -= inset * 2;
+			if (e->edge_id[SOUTH] != -1)
+				s_edges[e->edge_id[SOUTH]].sX -= inset * 2;
+		}
+
+		// North east
+		if (e && e->IsObstacle() && n && n->IsObstacle() && ne && !ne->IsObstacle()) {
+			if (n->edge_id[EAST] != -1)
+				s_edges[n->edge_id[EAST]].eY += inset * 2;
+			if (e->edge_id[NORTH] != -1)
+				s_edges[e->edge_id[NORTH]].sX -= inset * 2;
+		}
+		// North west
+		if (w && w->IsObstacle() && n && n->IsObstacle() && nw && !nw->IsObstacle()) {
+			if (n->edge_id[WEST] != -1)
+				s_edges[n->edge_id[WEST]].eY += inset * 2;
+			if (w->edge_id[NORTH] != -1)
+				s_edges[w->edge_id[NORTH]].eX += inset * 2;
+		}
+	}
+
+	FindUniqueEdgePoints();
 }
 
 void WorldMap::FindUniqueEdgePoints()
@@ -308,120 +358,7 @@ std::vector<std::tuple<float, float, float>> WorldMap::CalculateVisibilityPolygo
 	// Get rid of existing polygon
 	std::vector<std::tuple<float, float, float>> visibilityPolygonPoints;
 
-
-	// player bounds poly
-	float playerX = Input::s_mouseWorldX;
-	float playerY = Input::s_mouseWorldY;
-	int lowerX = playerX - 200 * (1.777777);
-	int upperX = playerX + 200 * (1.777777);
-	int lowerY = playerY+- 200;
-	int upperY = playerY - 200;
-
-
-	// Duplicate the list of unique points (every "line end" in the world)
-	/*std::vector < glm::vec2> duplicatePointList = s_uniqueEdgePoints;
-
-
-	// Remove any points outside specified range
-	for (int i = 0; i < duplicatePointList.size(); i++)
-	{
-		glm::vec2 point = duplicatePointList[i];
-
-		if (point.x < lowerX
-			|| point.x > upperX
-			|| point.y < lowerY
-			|| point.y > upperY
-			)
-			duplicatePointList.erase(duplicatePointList.begin() + i);
-	}
-
-	// SAME FOR EDGE LIST
-	/*std::vector<Edge> survivingEdges = s_edges;
-
-	for (int i = 0; i < survivingEdges.size(); i++)
-	{
-		Edge& edge = survivingEdges[i];
-		float lowerEdgeX = std::min(edge.eX, edge.sX);
-
-		if (lowerEdgeX < lowerX
-			//|| point.x > upperX
-			//|| point.y < lowerY
-			//|| point.y > upperY
-			)
-		{
-			survivingEdges.erase(survivingEdges.begin() + i);
-			//std::cout << "REMOVED " << i << " " << lowerEdgeX << " is lower than " << lowerX << "\n";
-		} 
-	}
-	*/
-
-
-	//std::cout << "original edges: " << s_edges.size() << "\n";
-	//std::cout << "survivingedges: " << survivingEdges.size() << "\n";
-
-	//std::cout << "original points: " << s_uniqueEdgePoints.size() << "\n";
-	//std::cout << "survivingpoints: " << duplicatePointList.size() << "\n\n";
-
-	// For each edge in PolyMap
-	//for (auto& e1 : s_edges)
-
-	std::vector<glm::vec2> newPointList;
-	for (glm::vec2 point : s_uniqueEdgePoints)
-	{
-		//newPointList.push_back(point);
-
-	//	if (point.x > lowerX)
-		{
-			newPointList.push_back(point);
-		}
-	}
-
-	std::vector<Edge> newEdgeList = s_edges;
-
-
-	Edge leftRegionEdge;
-	leftRegionEdge.sX = lowerX;
-	leftRegionEdge.sY = lowerY;
-	leftRegionEdge.eX = lowerX;
-	leftRegionEdge.eY = upperY;
-
-	Edge upperRegionEdge;
-	upperRegionEdge.sX = lowerX;
-	upperRegionEdge.sY = upperY;
-	upperRegionEdge.eX = upperX;
-	upperRegionEdge.eY = upperY;
-
-	for (Edge edge : s_edges)
-	{
-		Edge newEdge;
-		newEdge.sX = edge.sX;
-		newEdge.eX = edge.eX;
-		newEdge.sY = edge.sY;
-		newEdge.eY = edge.eY;
-		newEdgeList.push_back(newEdge);
-
-		// now check if there are any edges sitting on LEFT REGION LINE
-		if ((newEdge.sX < lowerX && newEdge.eX > lowerX) || (newEdge.sX > lowerX && newEdge.eX < lowerX)) {
-
-			/*glm::vec2 newPoint = glm::vec2(lowerX, newEdge.eY);
-			s_newPoints.push_back(newPoint);
-			newPointList.push_back(newPoint);*/
-
-
-
-			//LineIntersectionResult result = CheckLineIntersection(edge, leftRegionEdge);
-		//	if (result.intersectionFound)
-	//			newPointList.push_back(glm::vec2(result.x, result.y));
-		}
-	}
-
-
-
-	newEdgeList.push_back(leftRegionEdge);
-	//newEdgeList.push_back(upperRegionEdge);
-	
-
-	for (auto& point : newPointList)
+	for (auto& point : s_uniqueEdgePoints)
 	{
 		// Take the start point, then the end point (we could use a pool of
 		// non-duplicated points here, it would be more optimal)
@@ -430,7 +367,7 @@ std::vector<std::tuple<float, float, float>> WorldMap::CalculateVisibilityPolygo
 			float rdx, rdy;
 			//rdx = (i == 0 ? e1.sX : e1.eX) - ox;
 			//rdy = (i == 0 ? e1.sY : e1.eY) - oy;
-			
+
 			rdx = point.x - ox;
 			rdy = point.y - oy;
 
@@ -456,24 +393,8 @@ std::vector<std::tuple<float, float, float>> WorldMap::CalculateVisibilityPolygo
 				bool bValid = false;
 
 				// Check for ray intersection with all edges
-				for (auto& e2 : newEdgeList)
+				for (auto& e2 : s_edges)
 				{
-			//		if (e2.sY < lowerY && e2.sY < lowerY)
-			//			continue;
-
-			//		if (e2.eX < lowerX && e2.sX < lowerX)
-			//			continue;
-	//				if (e2.sX < lowerX)
-	//					continue;
-						
-
-
-
-
-
-
-
-
 					s_rayCount++;
 
 					// Create line segment vector
@@ -516,7 +437,7 @@ std::vector<std::tuple<float, float, float>> WorldMap::CalculateVisibilityPolygo
 					min_px -= difference.x * scale;
 					min_py -= difference.y * scale;*/
 
-					
+
 					visibilityPolygonPoints.push_back({ min_ang, min_px, min_py });
 				}
 			}
@@ -535,40 +456,6 @@ std::vector<std::tuple<float, float, float>> WorldMap::CalculateVisibilityPolygo
 
 	return visibilityPolygonPoints;
 }
-
-/*LineIntersectionResult WorldMap::CheckLineIntersection(Edge lineA, Edge lineB)
-{
-	LineIntersectionResult result;
-	result.intersectionFound = false;
-
-	float p0_x = lineA.sX;
-	float p0_y = lineA.sY;
-	float p1_x = lineA.eX;
-	float p1_y = lineA.eY;
-	float p2_x = lineB.sX;
-	float p2_y = lineB.sY;
-	float p3_x = lineB.eX;
-	float p3_y = lineB.eY;
-
-	float s1_x, s1_y, s2_x, s2_y;
-	s1_x = p1_x - p0_x;     s1_y = p1_y - p0_y;
-	s2_x = p3_x - p2_x;     s2_y = p3_y - p2_y;
-
-	float s, t;
-	s = (-s1_y * (p0_x - p2_x) + s1_x * (p0_y - p2_y)) / (-s2_x * s1_y + s1_x * s2_y);
-	t = (s2_x * (p0_y - p2_y) - s2_y * (p0_x - p2_x)) / (-s2_x * s1_y + s1_x * s2_y);
-
-	if (s >= 0 && s <= 1 && t >= 0 && t <= 1)
-	{
-		// Collision detected
-		result.x = p0_x + (t * s1_x);
-		result.y = p0_y + (t * s1_y);
-		result.intersectionFound = true;
-	}
-
-	return result;
-}*/
-
 
 Cell* WorldMap::GetCellPointer(int x, int y)
 {

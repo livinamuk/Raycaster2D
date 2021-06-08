@@ -1,7 +1,6 @@
 #include "CoreGL.h"
 #include "Input.h"
 #include <windows.h>
-#include "Camera.h"
 //#include "Renderer/Renderer.h"
 //#include "CoreImGui.h"
 
@@ -13,7 +12,6 @@ int CoreGL::s_windowWidth;
 int CoreGL::s_windowHeight;
 int CoreGL::windowedPosX;
 int CoreGL::windowedPosY;
-Camera* CoreGL::p_camera;
 
 void mouse_callback(GLFWwindow* window, double xpos, double ypos);
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);

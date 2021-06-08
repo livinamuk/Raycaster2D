@@ -1,10 +1,30 @@
 #include "Scene.h"
 
-std::vector<Light> Scene::s_lights;
+//std::vector<Light> Scene::s_lights; 
+std::unordered_map<int, Light> Scene::s_lights;
+unsigned int Scene::s_lightKeyCounter;
 
-void Scene::AddLight(int x, int y, glm::vec3 lightColor, float lightScale, int lightType, float strength, int rotate)
+void Scene::AddLight(int x, int y, glm::vec3 lightColor, float lightScale, int lightType, float brightness, float angle)
 {
-	s_lights.push_back(Light(glm::vec2(x, y), lightColor, lightScale, lightType, strength, rotate));
+	Light light("noname", glm::vec2(x, y), lightColor, lightScale, lightType, brightness, angle);
+	
+	s_lights[s_lightKeyCounter] = light;
+	s_lightKeyCounter++;
+}
+
+void Scene::AddFixedValueLight(int fixedValue, int hotspot, int xOffset, int yOffset, float r, float g, float b, float scale, int type, float brightness, float angle)
+{
+	std::string name = "object_light_" + std::to_string(fixedValue);
+	Light light(name, glm::vec2(0, 0), glm::vec3(r, g, b), scale, type, brightness, angle);
+
+	light.m_pairedObjectData.isPaired = true;
+	light.m_pairedObjectData.fixedValue = fixedValue;
+	light.m_pairedObjectData.followHotSpot = hotspot;
+	light.m_pairedObjectData.xOffset = xOffset;
+	light.m_pairedObjectData.yOffset = yOffset;
+
+	//s_lights.push_back(light);
+	s_lights[fixedValue] = light;
 }
 
 void Scene::SaveScene(std::string filename)
@@ -18,7 +38,11 @@ void Scene::SaveScene(std::string filename)
 	// Lights
 	rapidjson::Value lightsArray;
 	lightsArray.SetArray();
-	for (Light& light : s_lights) {
+
+	//for (Light& light : s_lights) {
+	for (auto& it : s_lights) 
+	{
+		Light& light = it.second;
 		rapidjson::Value flagObject;
 		flagObject.SetObject();
 		SaveInt(&flagObject, "X", light.m_position.x, allocator);
@@ -27,8 +51,8 @@ void Scene::SaveScene(std::string filename)
 		SaveFloat(&flagObject, "ColorG", light.m_color.y, allocator);
 		SaveFloat(&flagObject, "ColorB", light.m_color.z, allocator);
 		SaveInt(&flagObject, "Type", light.m_type, allocator);
-		SaveInt(&flagObject, "Rotate", light.m_rotate, allocator);
-		SaveFloat(&flagObject, "Strength", light.m_strength, allocator);
+		SaveFloat(&flagObject, "Angle", light.m_angle, allocator);
+		SaveFloat(&flagObject, "Brightness", light.m_brightness, allocator);
 		SaveFloat(&flagObject, "Scale", light.m_scale, allocator);
 		lightsArray.PushBack(flagObject, allocator);
 	}
@@ -51,6 +75,8 @@ void Scene::SaveScene(std::string filename)
 }
 void Scene::LoadScene(std::string filename)
 {
+	ResetScene();
+
 	std::string fileName = filename;
 	FILE* pFile = fopen(fileName.c_str(), "rb");
 	char buffer[65536];
@@ -80,12 +106,36 @@ void Scene::LoadScene(std::string filename)
 			float g = light["ColorG"].GetFloat();
 			float b = light["ColorB"].GetFloat();
 			int type = light["Type"].GetInt();
-			int rotate = light["Rotate"].GetInt();
-			float strength = light["Strength"].GetFloat();
+			float angle = light["Angle"].GetFloat();
+			float brightness = light["Brightness"].GetFloat();
 			float scale = light["Scale"].GetFloat();
 
-			Scene::AddLight(x, y, glm::vec3(r,g,b), scale, type, strength, rotate);
+			Scene::AddLight(x, y, glm::vec3(r, g, b), scale, type, brightness, angle);
 		}
+	}
+}
+
+void Scene::ResetScene()
+{
+	s_lights.clear();
+}
+
+Light* Scene::GetLightByName(std::string name)
+{
+	for (int i = 0; i < Scene::s_lights.size(); i++)
+	{
+		if (Scene::s_lights[i].m_name == name)
+			return &Scene::s_lights[i];
+	}
+	return nullptr;
+}
+
+void Scene::UpdateAllLights()
+{
+	for (auto& it : s_lights)
+	{
+		Light& light = it.second;
+		light.m_visibilityPolygonNeedsUpdate = true;
 	}
 }
 

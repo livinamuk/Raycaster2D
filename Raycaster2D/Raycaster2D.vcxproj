@@ -89,6 +89,7 @@
       <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>vendor\rapidjson\include;vendor\stb_image;vendor;src;vendor\glm;vendor\glad\include;vendor\GLFW\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -107,6 +108,7 @@
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>vendor\rapidjson\include;vendor\stb_image;vendor;src;vendor\glm;vendor\glad\include;vendor\GLFW\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -124,6 +126,7 @@
       <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>vendor\rapidjson\include;vendor\stb_image;vendor;src;vendor\glm;vendor\glad\include;vendor\GLFW\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -142,6 +145,7 @@
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>vendor\rapidjson\include;vendor\stb_image;vendor;src;vendor\glm;vendor\glad\include;vendor\GLFW\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -157,11 +161,11 @@
     <ClCompile Include="src\Core\Light.cpp" />
     <ClCompile Include="src\Core\Scene.cpp" />
     <ClCompile Include="src\Core\WorldMap.cpp" />
+    <ClCompile Include="src\Helpers\AssetManager.cpp" />
     <ClCompile Include="src\Renderer\BlurBuffer.cpp" />
     <ClCompile Include="src\Renderer\GBuffer.cpp" />
     <ClCompile Include="src\Renderer\Quad2D.cpp" />
     <ClCompile Include="src\Renderer\Renderer.cpp" />
-    <ClCompile Include="src\Core\Camera.cpp" />
     <ClCompile Include="src\Core\CoreGL.cpp" />
     <ClCompile Include="src\Core\Input.cpp" />
     <ClCompile Include="src\Helpers\Util.cpp" />
@@ -178,11 +182,11 @@
     <ClInclude Include="src\Core\Light.h" />
     <ClInclude Include="src\Core\Scene.h" />
     <ClInclude Include="src\Core\WorldMap.h" />
+    <ClInclude Include="src\Helpers\AssetManager.h" />
     <ClInclude Include="src\Renderer\BlurBuffer.h" />
     <ClInclude Include="src\Renderer\GBuffer.h" />
     <ClInclude Include="src\Renderer\Quad2D.h" />
     <ClInclude Include="src\Renderer\Renderer.h" />
-    <ClInclude Include="src\Core\Camera.h" />
     <ClInclude Include="src\Core\CoreGL.h" />
     <ClInclude Include="src\Core\Input.h" />
     <ClInclude Include="src\Core\keycodes.h" />

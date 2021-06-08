@@ -1,9 +1,9 @@
 #include "Header.h"
 #include "Core/CoreGL.h"
 #include "Core/Input.h"
-#include "Core/Camera.h"
 #include "Core/WorldMap.h"
 #include "Helpers/Util.h"
+#include "Helpers/AssetManager.h"
 #include "Renderer/Texture.h"
 #include "Renderer/TextBlitter.h"
 #include "Renderer/Renderer.h"
@@ -18,17 +18,18 @@ int main()
 {
     CoreGL::InitGL(SCR_WIDTH, SCR_HEIGHT);
 
+    AssetManager::FindAllFiles("res/textures/");
+
     Renderer::Init();
-    Light::Init(SCR_WIDTH, SCR_HEIGHT);
 
     Input::s_showCursor = true;
-
 
     Camera2D::s_scrollX = 760;
     Camera2D::s_scrollY = 600;
 
     WorldMap::LoadMap();
     Scene::LoadScene("res/scene.txt");
+ //   Scene::AddRuntimeLight("PlayerLight", 500, 500, HELL_WHITE, 2, ROOM_LIGHT, 100, 0);
 
     // Add lights
   //  Scene::AddLight(816, 433, HELL_RED, 5, LightType::ROOM_LIGHT, 1);
@@ -57,8 +58,9 @@ int main()
         CoreGL::ProcessInput();
         Input::HandleKeypresses();
         WorldMap::Update();
-        CoreGL::SetVSync(true);
+        CoreGL::SetVSync(false);
 
+        Renderer::s_renderMode = RENDER_MODE_STAND_ALONE_GL;
 
         int speed = 3;
 
@@ -86,9 +88,10 @@ int main()
             Scene::SaveScene("res/scene.txt");
         }
 
+        
         TextBlitter::BlitLine("Raycast 2D");
         TextBlitter::BlitLine("FPS: " + std::to_string(CoreGL::GetFPS()));
-        TextBlitter::BlitLine("X: " + std::to_string(Input::s_mouseX));
+       /* TextBlitter::BlitLine("X: " + std::to_string(Input::s_mouseX));
         TextBlitter::BlitLine("Y: " + std::to_string(Input::s_mouseY));
         TextBlitter::BlitLine("GridX: " + std::to_string(Input::s_gridX));
         TextBlitter::BlitLine("GridY: " + std::to_string(Input::s_gridY));
@@ -99,13 +102,13 @@ int main()
         TextBlitter::BlitLine("Render Mode: " + std::to_string(Renderer::s_renderMode));
         TextBlitter::BlitLine("Ray Checks: " + std::to_string(WorldMap::s_rayCount));
         TextBlitter::BlitLine("Final Rays: " + std::to_string(WorldMap::s_visibilityPolygonPoints.size()));
-        TextBlitter::BlitLine(" ");
+        TextBlitter::BlitLine(" ");*/
         TextBlitter::BlitLine("Light Count: " + std::to_string(Scene::s_lights.size()));
 
-        if (Renderer::s_selectedLight != -1) {
-            TextBlitter::BlitLine("Light type: " + std::to_string(Scene::s_lights[Renderer::s_selectedLight].m_type));
-            TextBlitter::BlitLine("Light rotate: " + std::to_string(Scene::s_lights[Renderer::s_selectedLight].m_rotate));
-        }
+      //  if (Renderer::s_selectedLight != -1) {
+       //     TextBlitter::BlitLine("Light type: " + std::to_string(Scene::s_lights[Renderer::s_selectedLight].m_type));
+      //      TextBlitter::BlitLine("Light angle: " + std::to_string(Scene::s_lights[Renderer::s_selectedLight].m_angle));
+       // }
     
     //   TextBlitter::BlitLine("Unique Edges: " + std::to_string(WorldMap::s_edges.size()));
      //   TextBlitter::BlitLine("Unique Points: " + std::to_string(WorldMap::s_uniqueEdgePoints.size()));
@@ -118,7 +121,12 @@ int main()
         Renderer::RenderFrame();
         CoreGL::SwapBuffersAndPollEvents();
     }
-
     CoreGL::Terminate();
+
+
+    //_CrtDumpMemoryLeaks();
+    
+
+
     return 0;
 }

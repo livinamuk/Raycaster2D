@@ -20,6 +20,8 @@ public: // fields
 	std::string name;
 	int width, height;
 
+	static std::string s_textureDirectory;
+
 private:
 	unsigned char* data;
 	int nrChannels;
