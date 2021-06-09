@@ -27,8 +27,9 @@ public: // fields
 	GLuint m_vbo;
 	int m_vertexCount;
 
-//private:
+private:
 	glm::vec2 m_position;
+	AABB m_aabb;
 
 public: // functions
 	//Light();

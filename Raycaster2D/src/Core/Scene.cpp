@@ -45,8 +45,8 @@ void Scene::SaveScene(std::string filename)
 		Light& light = it.second;
 		rapidjson::Value flagObject;
 		flagObject.SetObject();
-		SaveInt(&flagObject, "X", light.m_position.x, allocator);
-		SaveInt(&flagObject, "Y", light.m_position.y, allocator);
+		SaveInt(&flagObject, "X", light.GetX(), allocator);
+		SaveInt(&flagObject, "Y", light.GetY(), allocator);
 		SaveFloat(&flagObject, "ColorR", light.m_color.x, allocator);
 		SaveFloat(&flagObject, "ColorG", light.m_color.y, allocator);
 		SaveFloat(&flagObject, "ColorB", light.m_color.z, allocator);

@@ -35,6 +35,7 @@ public: // functions
 	static void ToggleLIGHTING();
 	static void SetLineOfSightBlurLevels(int levels);
 	static void SetLightingBlurLevels(int levels);
+	static void RenderAABB(Shader* shader, AABB& aabb);
 
 public: // variables
 	static Shader s_solid_color_shader;

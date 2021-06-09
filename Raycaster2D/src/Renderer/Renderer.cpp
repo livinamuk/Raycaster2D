@@ -22,7 +22,7 @@ std::vector<BlurBuffer> Renderer::s_BlurBuffers;
 
 int Renderer::s_softShadowsAmountLOS = 1;
 int Renderer::s_softShadowsAmountLighting = 1;
-int Renderer::s_wallEdgeInset = 0;
+int Renderer::s_wallEdgeInset = 4;
 
 int Renderer::s_renderMode = RENDER_MODE_STAND_ALONE_GL;
 int Renderer::s_selectedLight = -1;
@@ -83,9 +83,18 @@ void Renderer::RenderFrame()
         LightingPass();
         RenderPlayerLineOfSight(&s_player_line_of_sight_shader);
 
-        if (s_editorMode)
+        if (s_editorMode) {
             RenderEdgeMap(&s_solid_color_shader);
 
+            for (auto p : WorldMap::s_visibilityPolygonPoints) {
+                float x = std::get<1>(p);
+                float y = std::get<2>(p);
+                DrawLineByWorldCoords(&s_solid_color_shader, x, y, Input::s_mouseWorldX, Input::s_mouseWorldY, HELL_RED);
+            }
+
+            AABB screenAABB = Camera2D::GetSCreenAABB();
+            RenderAABB(&s_solid_color_shader, screenAABB);
+        }
         RenderFinalImage(&s_composite);
 
         // Editor mode
@@ -116,13 +125,6 @@ void Renderer::RenderFrame()
         s_textued_2D_quad_shader.setVec3("color", glm::vec3(1));
         TextBlitterPass(&s_textued_2D_quad_shader);
     }
-
-    // player visi poly
-   /* for (auto p : WorldMap::s_visibilityPolygonPoints) {
-        float x = std::get<1>(p);
-        float y = std::get<2>(p);
-        //  DrawLineByWorldCoords(&s_solid_color_shader, x, y, Input::s_mouseWorldX, Input::s_mouseWorldY, HELL_RED);
-    }*/
 }
 
 void Renderer::CheckForKeyPresses()
@@ -312,9 +314,9 @@ void Renderer::LightingPass()
     Light::s_lightsDrawn = 0;
 
     // Render shadow casting lights
-    for (int i = 0; i < Scene::s_lights.size(); i++)
+    for (auto& it : Scene::s_lights) 
     {
-        Light& light = Scene::s_lights[i];
+        Light& light = it.second;
         if (light.IsShadowCasting() && light.IsInScreenBounds() && WorldMap::IsPixelPositionInMapBounds(light.GetX(), light.GetY()))
             light.DrawShadowCastingLight(&s_shadowCastingLightShader, s_gBuffer.ID);
     }
@@ -645,6 +647,15 @@ void Renderer::SetLineOfSightBlurLevels(int levels)
 void Renderer::SetLightingBlurLevels(int levels)
 {
     s_softShadowsAmountLighting = levels;// std::min(std::max(0, levels), 3);
+}
+
+void Renderer::RenderAABB(Shader* shader, AABB& aabb)
+{
+
+    DrawLineByWorldCoords(&s_solid_color_shader, aabb.lowerX, aabb.lowerY, aabb.lowerX, aabb.upperY, HELL_YELLOW);
+    DrawLineByWorldCoords(&s_solid_color_shader, aabb.upperX, aabb.upperY, aabb.lowerX, aabb.upperY, HELL_YELLOW);
+    DrawLineByWorldCoords(&s_solid_color_shader, aabb.upperX, aabb.upperY, aabb.upperX, aabb.lowerY, HELL_YELLOW);
+    DrawLineByWorldCoords(&s_solid_color_shader, aabb.lowerX, aabb.lowerY, aabb.upperX, aabb.lowerY, HELL_YELLOW);
 }
 
 void Renderer::DrawLineByWorldCoords(Shader* shader, int x, int y, int x2, int y2, glm::vec3 color)

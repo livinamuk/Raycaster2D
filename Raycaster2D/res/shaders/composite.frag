@@ -39,8 +39,9 @@ void main()
     mapped = pow(mapped, vec3(1.0 / gamma));
     FragColor.rgb = mix(mapped, FragColor.rgb, 0.85);    
     FragColor.rgb =  clamp(FragColor.rgb, 0.0, 1.0);
-
+    
     FragColor = worldColor  *lightingColor *  lineOfSightColor;
+    //FragColor = worldColor  *  lightingColor;
 
     if (u_editorOpen)
         FragColor += editorColor;
