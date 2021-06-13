@@ -22,15 +22,15 @@ public: // fields
 	std::string m_name;
 	bool m_visibilityPolygonNeedsUpdate = true;
 	int m_vertexCount;
-	GLuint m_vao;
-	GLuint m_vbo;
-	Texture* m_texture;
 
 private:
 	glm::vec2 m_position;
 	AABB m_aabb;
 	float m_scale;
+	GLuint m_vao;
+	GLuint m_vbo;
 	bool m_castShadows;
+	Texture* m_texture;
 
 public: // functions
 	Light();
@@ -40,13 +40,12 @@ public: // functions
 	void SetTextureFromType();
 	bool IsInScreenBounds();
 	bool IsShadowCasting();
-	void SetCastShadows(bool value);
 	bool IsPairedToObject();
 	void SetScale(float scale);
 	float GetScale();
 	void SetPosition(float x, float y);
 	float GetX();
-	float GetY();
+	float GetY();	
 	void SetTexture(std::string textureName);
 	const char* GetTextureName();
 	AABB GetAABB();

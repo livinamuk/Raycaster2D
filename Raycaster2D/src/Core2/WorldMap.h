@@ -7,8 +7,8 @@ class WorldMap
 public:
 	static void Update();
 	static void NewMap();
-	static void LoadMap(const char* filepath);
-	static void SaveMap(const char* filepath);
+	static void LoadMap();
+	static void SaveMap();
 	static void SaveInt(rapidjson::Value* object, std::string elementName, int number, rapidjson::Document::AllocatorType& allocator);
 	static void BuildEdgeMapFromWorldMap(AABB* aabb, int inset);
 	static void FindUniqueEdgePoints();

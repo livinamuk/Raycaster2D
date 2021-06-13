@@ -9,7 +9,7 @@ public:
 	~GBuffer();
 
 	unsigned int ID;
-	unsigned int gWorld, gLineOfSight, gLighting, gEditor;
+	unsigned int gWorld, gLineOfSight, gLighting, gEditor, gLightTemp;
 
 	void Configure(int width, int height);
 };

@@ -9,16 +9,20 @@ uniform sampler2D image;
 void main(void){
 	
 	out_colour = vec4(0.0);
-	out_colour += texture(image, blurTextureCoords[0]) * 0.0093;
-    out_colour += texture(image, blurTextureCoords[1]) * 0.028002;
-    out_colour += texture(image, blurTextureCoords[2]) * 0.065984;
-    out_colour += texture(image, blurTextureCoords[3]) * 0.121703;
-    out_colour += texture(image, blurTextureCoords[4]) * 0.175713;
-    out_colour += texture(image, blurTextureCoords[5]) * 0.198596;
-    out_colour += texture(image, blurTextureCoords[6]) * 0.175713;
-    out_colour += texture(image, blurTextureCoords[7]) * 0.121703;
-    out_colour += texture(image, blurTextureCoords[8]) * 0.065984;
-    out_colour += texture(image, blurTextureCoords[9]) * 0.028002;
-    out_colour += texture(image, blurTextureCoords[10]) * 0.0093;
 
+   // if (out_colour.r < 0.5) {
+	    out_colour += texture(image, blurTextureCoords[0]) * 0.0093;
+        out_colour += texture(image, blurTextureCoords[1]) * 0.028002;
+        out_colour += texture(image, blurTextureCoords[2]) * 0.065984;
+        out_colour += texture(image, blurTextureCoords[3]) * 0.121703;
+        out_colour += texture(image, blurTextureCoords[4]) * 0.175713;
+        out_colour += texture(image, blurTextureCoords[5]) * 0.198596;
+        out_colour += texture(image, blurTextureCoords[6]) * 0.175713;
+        out_colour += texture(image, blurTextureCoords[7]) * 0.121703;
+        out_colour += texture(image, blurTextureCoords[8]) * 0.065984;
+        out_colour += texture(image, blurTextureCoords[9]) * 0.028002;
+        out_colour += texture(image, blurTextureCoords[10]) * 0.0093;
+  //  }
+  //  else
+//	    out_colour = texture(image, blurTextureCoords[5]);
 }

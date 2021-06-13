@@ -33,15 +33,16 @@ void main()
     vec2 viewportCoord = ndc.xy * 0.5 + 0.5; //ndc is -1 to 1 in GL. scale for 0 to 1
     vec2 viewportPixelCoord = viewportCoord * viewportSize;
 
+
     // calculate tex coords for visibility polygon using light position
-    float worldRangeLowerX = lightScreenSpacePixelPosition.x - spriteWidth*lightScale/2;
-    float worldRangeLowerY = lightScreenSpacePixelPosition.y - spriteHeight*lightScale/2;
+    float worldRangeLowerX = lightScreenSpacePixelPosition.x - spriteWidth*lightScale * 0.5;
+    float worldRangeLowerY = lightScreenSpacePixelPosition.y - spriteHeight*lightScale * 0.5;
     float worldRangeUpperX = worldRangeLowerX + spriteWidth * lightScale;
     float worldRangeUpperY = worldRangeLowerY + spriteHeight * lightScale;
     float maskTexCoordX = Map(viewportPixelCoord.x, worldRangeLowerX, worldRangeUpperX, 0, 1);
     float maskTexCoordY = Map(screenHeight-viewportPixelCoord.y, worldRangeLowerY, worldRangeUpperY, 0, 1);
     TexCoords = vec2(maskTexCoordX, maskTexCoordY);
-
+    
     // rotation matrix
     mat3 rotMatrix;
     rotMatrix[0][0] = cos(angle);
@@ -53,8 +54,6 @@ void main()
     rotMatrix[2][0] = 0;
     rotMatrix[2][1] = 0;
     rotMatrix[2][2] = 1;
-
-
 
     vec2 UV = vec2(maskTexCoordX, maskTexCoordY) + vec2(-0.5, -0.5);
     vec3 newCoords = rotMatrix * vec3(UV.x, UV.y, 0);

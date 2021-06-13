@@ -58,6 +58,37 @@ void Quad2D::RenderFullScreenQuad(Shader* shader)
 	glBindVertexArray(0);
 }
 
+void Quad2D::RenderCenteredAngledQuad(Shader* shader, Texture* texture, int xScreenCoord, int yScreenCoord, int angleDegrees, float scale)
+{
+	if (texture == nullptr)
+		return;
+
+	float width = (texture->width / SCR_WIDTH) * 2;
+	float height = (texture->height / SCR_HEIGHT) * 2;
+	glm::mat4 modelMatrix = glm::mat4(1.0f);
+
+	float x = (xScreenCoord / SCR_WIDTH) * 2 - 1;;
+	//float y = ((SCR_HEIGHT - yScreenCoord - texture->height * scale) / SCR_HEIGHT) * 2 - 1;
+	float y = ((SCR_HEIGHT - yScreenCoord ) / SCR_HEIGHT) * 2 - 1;
+
+	modelMatrix = glm::translate(glm::mat4(1.0f), glm::vec3(x, y, 0));
+
+	modelMatrix = glm::scale(modelMatrix, glm::vec3(width * scale * 0.5, height * scale * 0.5, 1));
+
+	float ang = angleDegrees * HELL_PI / 180;
+	glm::quat qt = glm::quat(glm::vec3(0, 0, ang));
+	modelMatrix *= glm::mat4_cast(qt); 
+	shader->setMat4("model", modelMatrix);
+
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, texture->ID);
+
+	glBindVertexArray(s_fullScreenQuadVAO);
+	glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+	glBindVertexArray(0);
+	shader->setVec3("color", glm::vec3(1));
+}
+
 void Quad2D::RenderQuad(Shader* shader, Texture* texture, int xScreenCoord, int yScreenCoord, float scale)
 {
 	if (texture == nullptr)

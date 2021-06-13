@@ -20,6 +20,7 @@ public: // functions
 	static void RenderTiledWorld(Shader* shader);
 	static void RenderEdgeMap(Shader* shader);
 	static void RenderPlayerLineOfSight(Shader* shader);
+	static void RenderPlayerLineOfSight2(Shader* shader);
 	static void RenderLightIcons(Shader* shader);
 	static void RenderFinalImage(Shader* shader);
 	static void TextBlitterPass(Shader* shader);
@@ -29,8 +30,10 @@ public: // functions
 	static void DrawLineByWorldCoords(Shader* shader, int x, int y, int x2, int y2, glm::vec3 color);
 	static void DrawTile(Shader* shader, Tile tile, int gridX, int gridY);
 	static void LightingPass();
+	static void LightingPass2();
 	static void HandleEditorInput();
 	static void DownScale(int sourceFBO, int sourceColorAttachment, int levels);
+	static void DownScale2(int sourceFBO, int sourceColorAttachment, int levels);
 	static void ToggleLOS();
 	static void ToggleLIGHTING();
 	static void SetLineOfSightBlurLevels(int levels);
@@ -44,9 +47,12 @@ public: // variables
 	static Shader s_blurVerticalShader;
 	static Shader s_blurHorizontalShader;
 	static Shader s_composite;
+	static Shader s_blurComposite;
 	static Shader s_shadowCastingLightShader;
 	static Shader s_nonShadowCastingLightShader;
 	static GBuffer s_gBuffer;
+	static Shader s_shadowProjection;
+	static Shader s_lightSprite;
 	static std::vector<BlurBuffer> s_BlurBuffers;
 
 	// These are used to store the the shadow casting light vertices, recreated for each light each frame.
@@ -67,5 +73,10 @@ public: // variables
 
 	static int s_softShadowsAmountLOS;
 	static int s_softShadowsAmountLighting;
+
+	static int s_testCounter;
+
+	static int s_lightUpdateCounter;
+	static int s_maxLightUpdatesPerFrame;
 };
 

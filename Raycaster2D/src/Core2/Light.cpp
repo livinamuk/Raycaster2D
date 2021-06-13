@@ -47,7 +47,7 @@ void Light::DrawShadowCastingLight(Shader* shader)
     for (auto& it : Scene::s_shadowCastingShape)
     {
         ShadowCastingShape& shape = it.second;
-
+        
         if (m_visibilityPolygonNeedsUpdate == false && shape.WasModified()) {
             if (aabb.ContainsPoint(shape.GetCornerA()) ||
                 aabb.ContainsPoint(shape.GetCornerB()) ||
@@ -59,7 +59,7 @@ void Light::DrawShadowCastingLight(Shader* shader)
             }
         }
     }
-
+    
     if (m_visibilityPolygonNeedsUpdate)
     {
         WorldMap::BuildEdgeMapFromWorldMap(&aabb, Renderer::s_wallEdgeInset);
@@ -159,11 +159,6 @@ bool Light::IsInScreenBounds()
 bool Light::IsShadowCasting()
 {
     return m_castShadows;
-}
-
-void Light::SetCastShadows(bool value)
-{
-    m_castShadows = true;
 }
 
 bool Light::IsPairedToObject()

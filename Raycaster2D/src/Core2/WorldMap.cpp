@@ -36,11 +36,10 @@ void WorldMap::NewMap()
 			s_map[x][y].tile = Tile::DIRT;
 }
 
-void WorldMap::LoadMap(const char* filepath)
+void WorldMap::LoadMap()
 {
 	std::string line;
-	//std::ifstream MyFile("res/WorldMap.txt");
-	std::ifstream MyFile(filepath);
+	std::ifstream MyFile("res/WorldMap.txt");
 	int y = 0;
 
 	while (std::getline(MyFile, line)) {
@@ -64,10 +63,9 @@ void WorldMap::LoadMap(const char* filepath)
 	MyFile.close();
 }
 
-void WorldMap::SaveMap(const char* filepath)
+void WorldMap::SaveMap()
 {
-	//std::ofstream MyFile("res/WorldMap.txt");
-	std::ofstream MyFile(filepath);
+	std::ofstream MyFile("res/WorldMap.txt");
 
 	for (int y = 0; y < MAP_HEIGHT; y++)
 	{
@@ -78,7 +76,6 @@ void WorldMap::SaveMap(const char* filepath)
 	MyFile.close();
 
 }
-
 
 void WorldMap::SaveInt(rapidjson::Value* object, std::string elementName, int number, rapidjson::Document::AllocatorType& allocator)
 {
@@ -439,13 +436,10 @@ std::vector<std::tuple<float, float, float>> WorldMap::CalculateVisibilityPolygo
 			float ang = 0;
 			// For each point, cast 3 rays, 1 directly at point
 			// and 1 a little bit either side
-			for (int j = 0; j < 3; j++)
+			for (int j = 0; j < 2; j++)
 			{
-				if (j == 1) continue;
-
 				if (j == 0)	ang = base_ang - 0.0001f;
-				if (j == 1)	ang = base_ang;
-				if (j == 2)	ang = base_ang + 0.0001f;
+				if (j == 1)	ang = base_ang + 0.0001f;
 
 				// Create ray along angle for required distance
 				rdx = radius * cosf(ang);

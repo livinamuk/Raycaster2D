@@ -157,9 +157,11 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="..\..\EDIF\Extensions\LetGodSortEmOut\MyShit\Core\ShadowCastingShape.cpp" />
     <ClCompile Include="src\Core\Camera2D.cpp" />
     <ClCompile Include="src\Core\Light.cpp" />
     <ClCompile Include="src\Core\Scene.cpp" />
+    <ClCompile Include="src\Core\ShadowCastingShape.cpp" />
     <ClCompile Include="src\Core\WorldMap.cpp" />
     <ClCompile Include="src\Helpers\AssetManager.cpp" />
     <ClCompile Include="src\Renderer\BlurBuffer.cpp" />
@@ -178,9 +180,11 @@
     <ClCompile Include="vendor\stb_image\stb_image.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\..\EDIF\Extensions\LetGodSortEmOut\MyShit\Core\ShadowCastingShape.h" />
     <ClInclude Include="src\Core\Camera2D.h" />
     <ClInclude Include="src\Core\Light.h" />
     <ClInclude Include="src\Core\Scene.h" />
+    <ClInclude Include="src\Core\ShadowCastingShape.h" />
     <ClInclude Include="src\Core\WorldMap.h" />
     <ClInclude Include="src\Helpers\AssetManager.h" />
     <ClInclude Include="src\Renderer\BlurBuffer.h" />
@@ -203,16 +207,22 @@
     <ClInclude Include="vendor\stb_image\stb_image.h" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="res\shaders\blurComposite.frag" />
+    <None Include="res\shaders\blurComposite.vert" />
     <None Include="res\shaders\composite.frag" />
     <None Include="res\shaders\composite.vert" />
     <None Include="res\shaders\decals.frag" />
     <None Include="res\shaders\decals.vert" />
+    <None Include="res\shaders\lightSprite.frag" />
+    <None Include="res\shaders\lightSprite.vert" />
     <None Include="res\shaders\playerLineOfSight.frag" />
     <None Include="res\shaders\playerLineOfSight.vert" />
     <None Include="res\shaders\nonshadowcastinglight.frag" />
     <None Include="res\shaders\nonshadowcastinglight.vert" />
     <None Include="res\shaders\shadowcastinglight.frag" />
     <None Include="res\shaders\shadowcastinglight.vert" />
+    <None Include="res\shaders\shadowProjection.frag" />
+    <None Include="res\shaders\shadowProjection.vert" />
     <None Include="res\shaders\skinnedmodel.frag" />
     <None Include="res\shaders\skinnedmodel.vert" />
     <None Include="res\shaders\solidColor.frag" />

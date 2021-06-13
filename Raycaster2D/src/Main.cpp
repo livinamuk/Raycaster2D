@@ -27,9 +27,13 @@ int main()
     Camera2D::s_scrollX = 760;
     Camera2D::s_scrollY = 600;
 
-    WorldMap::LoadMap();
+    WorldMap::LoadMap("res/WorldMap.txt");
     Scene::LoadScene("res/scene.txt");
- //   Scene::AddRuntimeLight("PlayerLight", 500, 500, HELL_WHITE, 2, ROOM_LIGHT, 100, 0);
+    Scene::AddNamedLight("PlayerLight", 500, 500, HELL_WHITE, 1, "Light_Grate.png", 1, 0, true);
+    int key = Scene::GetLightKeyByName("PlayerLight");
+    Light* playerLight = &Scene::s_lights[key];
+
+    Scene::AddShadowCastingShape("test", 800, 480, 50, 25, 0);
 
     // Add lights
   //  Scene::AddLight(816, 433, HELL_RED, 5, LightType::ROOM_LIGHT, 1);
@@ -48,6 +52,11 @@ int main()
     ///////////////////////
     //   Main game loop  //
 
+
+  //  std::cout << Scene::s_lights.size() << "\n";
+  //  std::cout << "DELETE: " << Scene::s_lights.erase(5) << " " << Scene::s_lights.size() << "\n";
+ //   std::cout << "DELETE: " << Scene::s_lights.erase(7) << " " << Scene::s_lights.size() << "\n";
+
     while (CoreGL::IsRunning() && !Input::s_keyDown[HELL_KEY_ESCAPE])
     {
         float deltaTime = CoreGL::GetGLTime() - lastFrame;
@@ -57,7 +66,8 @@ int main()
         CoreGL::OnUpdate();
         CoreGL::ProcessInput();
         Input::HandleKeypresses();
-        WorldMap::Update();
+        WorldMap::Update(); 
+        Scene::Update();
         CoreGL::SetVSync(false);
 
         Renderer::s_renderMode = RENDER_MODE_STAND_ALONE_GL;
@@ -73,6 +83,14 @@ int main()
         if (Input::s_keyDown[HELL_KEY_W])
             Camera2D::s_scrollY -= speed;
 
+
+       /* if (Input::s_keyPressed[HELL_KEY_Q])
+            playerLight->SetScale(playerLight->GetScale() - 0.1f);
+        if (Input::s_keyPressed[HELL_KEY_E])
+            playerLight->SetScale(playerLight->GetScale() + 0.1f);
+            
+        playerLight->SetPosition(Input::s_mouseWorldX, Input::s_mouseWorldY);*/
+
         Camera2D::s_scrollX = std::max((int)SCR_WIDTH / 2, Camera2D::s_scrollX);
         Camera2D::s_scrollY = std::max((int)SCR_HEIGHT / 2, Camera2D::s_scrollY);
 
@@ -84,26 +102,51 @@ int main()
             Renderer::HotLoadShaders();
 
         if (Input::s_keyPressed[HELL_KEY_L]) {
-            WorldMap::SaveMap();
+            WorldMap::SaveMap("res/WorldMap.txt");
             Scene::SaveScene("res/scene.txt");
         }
 
+        ShadowCastingShape* shape = &Scene::s_shadowCastingShape[0];
         
+        if (Input::s_keyDown[HELL_KEY_R])
+          shape->SetAngle(shape->GetAngle() + 1);
+
+
         TextBlitter::BlitLine("Raycast 2D");
         TextBlitter::BlitLine("FPS: " + std::to_string(CoreGL::GetFPS()));
+        TextBlitter::BlitLine("Test: " + std::to_string(Renderer::s_testCounter));
+        TextBlitter::BlitLine("LOS soft: " + std::to_string(Renderer::s_softShadowsAmountLOS));
+        TextBlitter::BlitLine("Lighting soft: " + std::to_string(Renderer::s_softShadowsAmountLighting));
+      //  TextBlitter::BlitLine("Scale: " + std::to_string(playerLight->GetScale()));
+      //  TextBlitter::BlitLine("Width: " + std::to_string((playerLight->m_texture->width / 2) * playerLight->GetScale()));
+
+        TextBlitter::BlitLine("Lights drawn: " + std::to_string( Light::s_lightsDrawn));
+
+       
+    //    
+
+
+     //   TextBlitter::BlitLine("pos: " + std::to_string(shape->m_position.x) + ", " + std::to_string(shape->m_position.y));
+    //    TextBlitter::BlitLine("cornerA: " + std::to_string(shape->GetCornerA().x) + ", " + std::to_string(shape->GetCornerA().y));
+    //    TextBlitter::BlitLine("cornerB: " + std::to_string(shape->GetCornerB().x) + ", " + std::to_string(shape->GetCornerB().y));
+   //     TextBlitter::BlitLine("WorldX: " + std::to_string(Input::s_mouseWorldX));
+   //     TextBlitter::BlitLine("WorldY: " + std::to_string(Input::s_mouseWorldY));
        /* TextBlitter::BlitLine("X: " + std::to_string(Input::s_mouseX));
         TextBlitter::BlitLine("Y: " + std::to_string(Input::s_mouseY));
         TextBlitter::BlitLine("GridX: " + std::to_string(Input::s_gridX));
         TextBlitter::BlitLine("GridY: " + std::to_string(Input::s_gridY));
-        TextBlitter::BlitLine("WorldX: " + std::to_string(Input::s_mouseWorldX));
-        TextBlitter::BlitLine("WorldY: " + std::to_string(Input::s_mouseWorldY));
+       
         TextBlitter::BlitLine("CamX: " + std::to_string(Camera2D::s_scrollX));
         TextBlitter::BlitLine("CamY: " + std::to_string(Camera2D::s_scrollY));
         TextBlitter::BlitLine("Render Mode: " + std::to_string(Renderer::s_renderMode));
         TextBlitter::BlitLine("Ray Checks: " + std::to_string(WorldMap::s_rayCount));
         TextBlitter::BlitLine("Final Rays: " + std::to_string(WorldMap::s_visibilityPolygonPoints.size()));
         TextBlitter::BlitLine(" ");*/
-        TextBlitter::BlitLine("Light Count: " + std::to_string(Scene::s_lights.size()));
+   //     std::string name = playerLight->GetTextureName();
+       TextBlitter::BlitLine("Light Count: " + std::to_string(Scene::s_lights.size()));
+     ///   TextBlitter::BlitLine("Light Color: " + std::to_string(playerLight->m_color.x) + ", " + std::to_string(playerLight->m_color.y) + ", " + std::to_string(playerLight->m_color.z));
+     //   TextBlitter::BlitLine(", ");
+     //   TextBlitter::BlitLine("Texture: " + name);
 
       //  if (Renderer::s_selectedLight != -1) {
        //     TextBlitter::BlitLine("Light type: " + std::to_string(Scene::s_lights[Renderer::s_selectedLight].m_type));
@@ -120,6 +163,8 @@ int main()
         Camera2D::AdjustProjection();
         Renderer::RenderFrame();
         CoreGL::SwapBuffersAndPollEvents();
+
+        Scene::ResetShadowCastingObjectModifiedFlags();
     }
     CoreGL::Terminate();
 

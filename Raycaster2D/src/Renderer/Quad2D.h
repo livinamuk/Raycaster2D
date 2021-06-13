@@ -7,6 +7,7 @@ class Quad2D
 public:
 	static void Init();
 	static void RenderFullScreenQuad(Shader* shader);
+	static void RenderCenteredAngledQuad(Shader* shader, Texture* texture, int xScreenCoord, int yScreenCoord, int angleDegrees, float scale = 1.0f);
 	static void RenderQuad(Shader* shader, Texture* texture, int xScreenCoord, int yScreenCoord, float scale = 1.0f);
 
 private:
